@@ -105,7 +105,10 @@ export const translations = {
     noInvoicesMatchSearch: 'No invoices match your search criteria',
     createFirstInvoice: 'Create your first invoice to get started',
     backToList: 'Back to List',
-    newInvoice: 'New Invoice'
+    newInvoice: 'New Invoice',
+    displayCurrency: 'Display Currency',
+    refreshRates: 'Refresh Rates',
+    lastUpdated: 'Last updated'
   },
   id: {
     // Header
@@ -213,7 +216,10 @@ export const translations = {
     noInvoicesMatchSearch: 'Tidak ada invoice yang sesuai dengan pencarian Anda',
     createFirstInvoice: 'Buat invoice pertama Anda untuk memulai',
     backToList: 'Kembali ke Daftar',
-    newInvoice: 'Invoice Baru'
+    newInvoice: 'Invoice Baru',
+    displayCurrency: 'Mata Uang Tampilan',
+    refreshRates: 'Perbarui Kurs',
+    lastUpdated: 'Terakhir diperbarui'
   }
 };
 

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Eye, Edit, Trash2, FileText, Calendar, DollarSign, Clock, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import { Search, Plus, Eye, Edit, Trash2, FileText, Calendar, DollarSign, Clock, CheckCircle, AlertCircle, XCircle, RefreshCw } from 'lucide-react';
 import { InvoiceData } from '../types/invoice';
 import { getAllInvoices, deleteInvoice, searchInvoices } from '../utils/storage';
 import { formatCurrency, formatDate } from '../utils/helpers';
 import { translations } from '../utils/translations';
+import { CurrencySelector } from './CurrencySelector';
+import { fetchExchangeRates, convertCurrency, ExchangeRates } from '../utils/currency';
 
 interface InvoiceListProps {
   language: 'en' | 'id';
@@ -24,20 +26,53 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'date' | 'amount' | 'status'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [displayCurrency, setDisplayCurrency] = useState<string>('USD');
+  const [exchangeRates, setExchangeRates] = useState<ExchangeRates>({});
+  const [isLoadingRates, setIsLoadingRates] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const t = translations[language];
 
   useEffect(() => {
     loadInvoices();
+    loadExchangeRates();
   }, []);
 
   useEffect(() => {
     filterAndSortInvoices();
   }, [invoices, searchQuery, selectedStatus, sortBy, sortOrder]);
 
+  useEffect(() => {
+    if (Object.keys(exchangeRates).length > 0) {
+      filterAndSortInvoices();
+    }
+  }, [displayCurrency, exchangeRates]);
+
   const loadInvoices = () => {
     const allInvoices = getAllInvoices();
     setInvoices(allInvoices);
+  };
+
+  const loadExchangeRates = async () => {
+    setIsLoadingRates(true);
+    try {
+      const rates = await fetchExchangeRates();
+      setExchangeRates(rates);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Failed to load exchange rates:', error);
+    } finally {
+      setIsLoadingRates(false);
+    }
+  };
+
+  const refreshExchangeRates = () => {
+    loadExchangeRates();
+  };
+
+  const convertAmount = (amount: number, fromCurrency: string): number => {
+    if (Object.keys(exchangeRates).length === 0) return amount;
+    return convertCurrency(amount, fromCurrency, displayCurrency, exchangeRates);
   };
 
   const filterAndSortInvoices = () => {
@@ -55,7 +90,9 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
           comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
           break;
         case 'amount':
-          comparison = a.total - b.total;
+          const convertedAmountA = convertAmount(a.total, a.currency);
+          const convertedAmountB = convertAmount(b.total, b.currency);
+          comparison = convertedAmountA - convertedAmountB;
           break;
         case 'status':
           comparison = a.status.localeCompare(b.status);
@@ -105,8 +142,8 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
     }
   };
 
-  const totalAmount = filteredInvoices.reduce((sum, invoice) => sum + invoice.total, 0);
-  const paidAmount = filteredInvoices.filter(inv => inv.status === 'paid').reduce((sum, invoice) => sum + invoice.total, 0);
+  const totalAmount = filteredInvoices.reduce((sum, invoice) => sum + convertAmount(invoice.total, invoice.currency), 0);
+  const paidAmount = filteredInvoices.filter(inv => inv.status === 'paid').reduce((sum, invoice) => sum + convertAmount(invoice.total, invoice.currency), 0);
   const pendingAmount = totalAmount - paidAmount;
 
   return (
@@ -139,9 +176,9 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
       {/* Stats Cards with 3D Effects */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
-          { label: t.totalAmount || 'Total Amount', value: formatCurrency(totalAmount, 'USD'), icon: DollarSign, color: 'from-blue-500 to-blue-600' },
-          { label: t.paidAmount || 'Paid Amount', value: formatCurrency(paidAmount, 'USD'), icon: CheckCircle, color: 'from-green-500 to-green-600' },
-          { label: t.pendingAmount || 'Pending Amount', value: formatCurrency(pendingAmount, 'USD'), icon: Clock, color: 'from-orange-500 to-orange-600' }
+          { label: t.totalAmount || 'Total Amount', value: formatCurrency(totalAmount, displayCurrency), icon: DollarSign, color: 'from-blue-500 to-blue-600' },
+          { label: t.paidAmount || 'Paid Amount', value: formatCurrency(paidAmount, displayCurrency), icon: CheckCircle, color: 'from-green-500 to-green-600' },
+          { label: t.pendingAmount || 'Pending Amount', value: formatCurrency(pendingAmount, displayCurrency), icon: Clock, color: 'from-orange-500 to-orange-600' }
         ].map((stat, index) => (
           <div key={index} className="group relative">
             <div className="absolute inset-0 bg-gradient-to-r opacity-20 rounded-xl transform rotate-1 group-hover:rotate-2 transition-transform duration-300" style={{ background: `linear-gradient(to right, ${stat.color.split(' ')[1]}, ${stat.color.split(' ')[3]})` }}></div>
@@ -158,6 +195,32 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Currency Selector and Exchange Rate Info */}
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+          <div className="flex items-center space-x-4">
+            <CurrencySelector
+              selectedCurrency={displayCurrency}
+              onCurrencyChange={setDisplayCurrency}
+              label={t.displayCurrency || 'Display Currency'}
+            />
+            <button
+              onClick={refreshExchangeRates}
+              disabled={isLoadingRates}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoadingRates ? 'animate-spin' : ''}`} />
+              <span>{t.refreshRates || 'Refresh Rates'}</span>
+            </button>
+          </div>
+          {lastUpdated && (
+            <div className="text-sm text-gray-600">
+              {t.lastUpdated || 'Last updated'}: {lastUpdated.toLocaleTimeString()}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Search and Filters */}
@@ -238,7 +301,14 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
                     <DollarSign className="h-4 w-4" />
                     <span>{t.amount || 'Amount'}</span>
                   </span>
-                  <span className="font-bold text-lg">{formatCurrency(invoice.total, invoice.currency)}</span>
+                  <div className="text-right">
+                    <span className="font-bold text-lg">{formatCurrency(convertAmount(invoice.total, invoice.currency), displayCurrency)}</span>
+                    {invoice.currency !== displayCurrency && (
+                      <div className="text-xs text-gray-500">
+                        {formatCurrency(invoice.total, invoice.currency)}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
