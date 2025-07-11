@@ -1,7 +1,7 @@
 export const translations = {
   en: {
     // Header
-    invoiceGenerator: 'Invoice Generator',
+    invoiceGenerator: 'Lunara',
     language: 'Language',
     theme: 'Theme',
     
@@ -112,7 +112,7 @@ export const translations = {
   },
   id: {
     // Header
-    invoiceGenerator: 'Generator Invoice',
+    invoiceGenerator: 'Lunara',
     language: 'Bahasa',
     theme: 'Tema',
     

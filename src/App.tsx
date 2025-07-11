@@ -149,6 +149,10 @@ function App() {
         theme={invoiceData.theme}
         onLanguageChange={handleLanguageChange}
         onThemeChange={handleThemeChange}
+        user={currentUser}
+        onLogin={() => setShowLogin(true)}
+        onLogout={handleLogout}
+        onAdminPanel={() => setCurrentView('admin')}
       />
 
       {/* Navigation */}
