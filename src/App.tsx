@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, FileText, Download, Check, X, List, ArrowLeft } from 'lucide-react';
 import { InvoiceData } from './types/invoice';
+import { User } from './types/user';
 import { Header } from './components/Header';
 import { InvoiceForm } from './components/InvoiceForm';
 import { InvoicePreview } from './components/InvoicePreview';
 import { InvoiceList } from './components/InvoiceList';
+import { LoginForm } from './components/LoginForm';
+import { AdminPanel } from './components/AdminPanel';
 import { saveInvoiceData, loadInvoiceData, clearInvoiceData, saveInvoice } from './utils/storage';
+import { getCurrentUser, logout } from './utils/auth';
 import { translations } from './utils/translations';
 import { generateInvoiceNumber } from './utils/helpers';
 
@@ -49,8 +53,10 @@ const defaultInvoiceData: InvoiceData = {
 
 function App() {
   const [invoiceData, setInvoiceData] = useState<InvoiceData>(defaultInvoiceData);
-  const [currentView, setCurrentView] = useState<'list' | 'form' | 'preview'>('list');
+  const [currentView, setCurrentView] = useState<'list' | 'form' | 'preview' | 'admin'>('list');
   const [isEditing, setIsEditing] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
+  const [showLogin, setShowLogin] = useState(false);
   const [showNotification, setShowNotification] = useState<{
     message: string;
     type: 'success' | 'error';
@@ -63,6 +69,10 @@ function App() {
     if (savedData) {
       setInvoiceData(savedData);
     }
+    
+    // Check for existing user session
+    const user = getCurrentUser();
+    setCurrentUser(user);
   }, []);
 
   const handleDataChange = (data: InvoiceData) => {
@@ -89,6 +99,19 @@ function App() {
     clearInvoiceData();
     setIsEditing(false);
     showNotificationMessage(t.invoiceCleared, 'success');
+  };
+
+  const handleLogin = (user: User) => {
+    setCurrentUser(user);
+    setShowLogin(false);
+    showNotificationMessage(`Welcome back, ${user.username}!`, 'success');
+  };
+
+  const handleLogout = () => {
+    logout();
+    setCurrentUser(undefined);
+    setCurrentView('list');
+    showNotificationMessage('Logged out successfully', 'success');
   };
 
   const handleCreateNew = () => {
@@ -133,6 +156,59 @@ function App() {
     setShowNotification({ message, type });
     setTimeout(() => setShowNotification(null), 3000);
   };
+
+  // Redirect to login if not authenticated
+  if (!currentUser && !showLogin) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
+        <Header
+          language={invoiceData.language}
+          theme={invoiceData.theme}
+          onLanguageChange={handleLanguageChange}
+          onThemeChange={handleThemeChange}
+          user={currentUser}
+          onLogin={() => setShowLogin(true)}
+          onLogout={handleLogout}
+        />
+        <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
+          <div className="text-center">
+            <div className="mb-8">
+              <div className="relative inline-block">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transform rotate-6 opacity-20"></div>
+                <div className="relative bg-gradient-to-r from-blue-500 to-purple-600 p-6 rounded-full shadow-lg">
+                  <FileText className="h-12 w-12 text-white" />
+                </div>
+              </div>
+            </div>
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+              Welcome to Lunara
+            </h2>
+            <p className="text-gray-600 mb-8 max-w-md">
+              Professional invoice management system with multi-language support and real-time currency conversion.
+            </p>
+            <button
+              onClick={() => setShowLogin(true)}
+              className="group relative bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+              <div className="relative">Get Started</div>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login form
+  if (showLogin) {
+    return (
+      <LoginForm
+        language={invoiceData.language}
+        onLogin={handleLogin}
+        onClose={() => setShowLogin(false)}
+      />
+    );
+  }
 
   const handlePrint = () => {
     window.print();
@@ -223,7 +299,9 @@ function App() {
 
         {/* Main Content */}
         <div className="space-y-6">
-          {currentView === 'list' ? (
+          {currentView === 'admin' ? (
+            <AdminPanel language={invoiceData.language} />
+          ) : currentView === 'list' ? (
             <InvoiceList
               language={invoiceData.language}
               onCreateNew={handleCreateNew}

@@ -108,7 +108,14 @@ export const translations = {
     newInvoice: 'New Invoice',
     displayCurrency: 'Display Currency',
     refreshRates: 'Refresh Rates',
-    lastUpdated: 'Last updated'
+    lastUpdated: 'Last updated',
+    
+    // Authentication
+    login: 'Login',
+    logout: 'Logout',
+    loginToAccess: 'Login to access your invoices',
+    adminPanel: 'Admin Panel',
+    lastLogin: 'Last Login'
   },
   id: {
     // Header
@@ -219,7 +226,14 @@ export const translations = {
     newInvoice: 'Invoice Baru',
     displayCurrency: 'Mata Uang Tampilan',
     refreshRates: 'Perbarui Kurs',
-    lastUpdated: 'Terakhir diperbarui'
+    lastUpdated: 'Terakhir diperbarui',
+    
+    // Authentication
+    login: 'Masuk',
+    logout: 'Keluar',
+    loginToAccess: 'Masuk untuk mengakses invoice Anda',
+    adminPanel: 'Panel Admin',
+    lastLogin: 'Login Terakhir'
   }
 };
 
