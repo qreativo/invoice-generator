@@ -56,7 +56,9 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
   const loadExchangeRates = async () => {
     setIsLoadingRates(true);
     try {
+      console.log('📡 Loading exchange rates...');
       const rates = await fetchExchangeRates();
+      console.log('✅ Exchange rates loaded:', rates);
       setExchangeRates(rates);
       setLastUpdated(new Date());
     } catch (error) {
@@ -66,12 +68,32 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
     }
   };
 
-  const refreshExchangeRates = () => {
+  const refreshExchangeRates = async () => {
     setIsLoadingRates(true);
-    // Clear cache and force fresh fetch
-    loadExchangeRates().finally(() => {
+    try {
+      console.log('🔄 Refreshing exchange rates...');
+      // Import the refresh function from currency utils
+      const { refreshExchangeRates: forceRefresh } = await import('../utils/currency');
+      const rates = await forceRefresh();
+      console.log('✅ Fresh exchange rates loaded:', rates);
+      setExchangeRates(rates);
+      setLastUpdated(new Date());
+      
+      // Show success message
+      const event = new CustomEvent('showNotification', {
+        detail: { message: 'Exchange rates updated successfully!', type: 'success' }
+      });
+      window.dispatchEvent(event);
+    } catch (error) {
+      console.error('❌ Failed to refresh exchange rates:', error);
+      // Show error message
+      const event = new CustomEvent('showNotification', {
+        detail: { message: 'Failed to refresh exchange rates', type: 'error' }
+      });
+      window.dispatchEvent(event);
+    } finally {
       setIsLoadingRates(false);
-    });
+    }
   };
 
   const convertAmount = (amount: number, fromCurrency: string): number => {

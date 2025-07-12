@@ -73,6 +73,17 @@ function App() {
     // Check for existing user session
     const user = getCurrentUser();
     setCurrentUser(user);
+    
+    // Listen for notification events from components
+    const handleNotification = (event: any) => {
+      showNotificationMessage(event.detail.message, event.detail.type);
+    };
+    
+    window.addEventListener('showNotification', handleNotification);
+    
+    return () => {
+      window.removeEventListener('showNotification', handleNotification);
+    };
   }, []);
 
   const handleDataChange = (data: InvoiceData) => {

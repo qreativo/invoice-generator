@@ -99,13 +99,27 @@ export const convertCurrency = (
   const toRate = rates[toCurrency];
   
   if (!fromRate || !toRate) {
-    console.warn(`⚠️ Missing exchange rate for ${fromCurrency} or ${toCurrency}`);
+    console.warn(`⚠️ Missing exchange rate for ${fromCurrency} (${fromRate}) or ${toCurrency} (${toRate})`);
+    console.log('Available rates:', Object.keys(rates));
     return amount; // Return original amount if rates not available
   }
 
-  // Convert to USD first, then to target currency
-  const usdAmount = fromCurrency === 'USD' ? amount : amount / fromRate;
-  const convertedAmount = toCurrency === 'USD' ? usdAmount : usdAmount * toRate;
+  // All rates are already relative to USD, so direct conversion
+  let convertedAmount;
+  
+  if (fromCurrency === 'USD') {
+    // From USD to target currency
+    convertedAmount = amount * toRate;
+  } else if (toCurrency === 'USD') {
+    // From source currency to USD
+    convertedAmount = amount / fromRate;
+  } else {
+    // From source currency to target currency via USD
+    const usdAmount = amount / fromRate;
+    convertedAmount = usdAmount * toRate;
+  }
+  
+  console.log(`💱 Converting ${amount} ${fromCurrency} to ${toCurrency}: ${convertedAmount.toFixed(2)}`);
   
   return convertedAmount;
 };
@@ -149,6 +163,7 @@ export const refreshExchangeRates = async (baseCurrency = 'USD'): Promise<Exchan
   cachedRates = null;
   lastFetchTime = 0;
   
+  console.log('🔄 Forcing fresh exchange rates fetch...');
   return await fetchExchangeRates(baseCurrency);
 };
 
