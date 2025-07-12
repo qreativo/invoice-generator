@@ -149,7 +149,25 @@ export const translations = {
     deleteFailed: 'Delete failed',
     noUsersFound: 'No users found',
     noUsersMatchSearch: 'No users match your search criteria',
-    createFirstUser: 'Create your first user to get started'
+    createFirstUser: 'Create your first user to get started',
+    
+    // Google Auth Settings
+    googleAuthSettings: 'Google Authentication Settings',
+    enableGoogleAuth: 'Enable Google Authentication',
+    enableGoogleAuthDesc: 'Allow users to login with their Google accounts',
+    googleClientId: 'Google Client ID',
+    googleClientSecret: 'Google Client Secret',
+    redirectUri: 'Redirect URI',
+    setupInstructions: 'Setup Instructions',
+    instruction1: 'Go to Google Cloud Console and create a new project',
+    instruction2: 'Enable the Google+ API for your project',
+    instruction3: 'Create OAuth 2.0 credentials (Web application)',
+    instruction4: 'Add your domain to authorized origins',
+    instruction5: 'Copy the Client ID and Client Secret here',
+    saveSettings: 'Save Settings',
+    settingsSaved: 'Settings saved successfully!',
+    settings: 'Settings',
+    users: 'Users'
   },
   id: {
     // Header
@@ -301,7 +319,25 @@ export const translations = {
     deleteFailed: 'Penghapusan gagal',
     noUsersFound: 'Tidak ada pengguna ditemukan',
     noUsersMatchSearch: 'Tidak ada pengguna yang sesuai dengan pencarian Anda',
-    createFirstUser: 'Buat pengguna pertama Anda untuk memulai'
+    createFirstUser: 'Buat pengguna pertama Anda untuk memulai',
+    
+    // Google Auth Settings
+    googleAuthSettings: 'Pengaturan Autentikasi Google',
+    enableGoogleAuth: 'Aktifkan Autentikasi Google',
+    enableGoogleAuthDesc: 'Izinkan pengguna masuk dengan akun Google mereka',
+    googleClientId: 'Google Client ID',
+    googleClientSecret: 'Google Client Secret',
+    redirectUri: 'Redirect URI',
+    setupInstructions: 'Petunjuk Pengaturan',
+    instruction1: 'Buka Google Cloud Console dan buat proyek baru',
+    instruction2: 'Aktifkan Google+ API untuk proyek Anda',
+    instruction3: 'Buat kredensial OAuth 2.0 (Aplikasi web)',
+    instruction4: 'Tambahkan domain Anda ke origins yang diizinkan',
+    instruction5: 'Salin Client ID dan Client Secret ke sini',
+    saveSettings: 'Simpan Pengaturan',
+    settingsSaved: 'Pengaturan berhasil disimpan!',
+    settings: 'Pengaturan',
+    users: 'Pengguna'
   }
 };
 
