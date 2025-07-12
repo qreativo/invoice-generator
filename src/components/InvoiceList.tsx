@@ -67,7 +67,11 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
   };
 
   const refreshExchangeRates = () => {
-    loadExchangeRates();
+    setIsLoadingRates(true);
+    // Clear cache and force fresh fetch
+    loadExchangeRates().finally(() => {
+      setIsLoadingRates(false);
+    });
   };
 
   const convertAmount = (amount: number, fromCurrency: string): number => {
