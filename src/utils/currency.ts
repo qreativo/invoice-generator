@@ -51,7 +51,7 @@ export const fetchExchangeRates = async (baseCurrency = 'USD'): Promise<Exchange
   }
 
   try {
-    console.log('📡 Fetching exchange rates from Google Apps Script...');
+    console.log('📡 Fetching exchange rates...');
     const response = await fetch(GOOGLE_SCRIPT_API_URL);
     
     if (!response.ok) {
@@ -72,7 +72,7 @@ export const fetchExchangeRates = async (baseCurrency = 'USD'): Promise<Exchange
       cachedUpdateTime = apiResponse.updated_at_wib || apiResponse.updated_at_iso;
       lastFetchTime = now;
       
-      console.log('✅ Exchange rates updated successfully from Google Apps Script:', {
+      console.log('✅ Exchange rates updated successfully:', {
         timestamp: new Date().toLocaleString(),
         dataUpdatedAt: apiResponse.updated_at_wib,
         ratesCount: Object.keys(rates).length,
@@ -91,7 +91,7 @@ export const fetchExchangeRates = async (baseCurrency = 'USD'): Promise<Exchange
       throw new Error(`API returned success: ${apiResponse.success}, but invalid data format`);
     }
   } catch (error) {
-    console.warn('⚠️ Failed to fetch exchange rates from Google Apps Script:', error);
+    console.warn('⚠️ Failed to fetch exchange rates:', error);
     console.log('📦 Using fallback rates');
     
     // Return fallback rates
@@ -198,7 +198,7 @@ export const refreshExchangeRates = async (baseCurrency = 'USD'): Promise<Exchan
   cachedUpdateTime = null;
   lastFetchTime = 0;
   
-  console.log('🔄 Forcing fresh exchange rates fetch from Google Apps Script...');
+  console.log('🔄 Forcing fresh exchange rates fetch...');
   return await fetchExchangeRates(baseCurrency);
 };
 
@@ -216,7 +216,7 @@ export const getCacheInfo = () => {
     cacheAge: lastFetchTime ? Date.now() - lastFetchTime : 0,
     isExpired: !areCachedRatesFresh(),
     supportedCurrencies: getSupportedCurrencies().length,
-    apiSource: 'Google Apps Script',
+    apiSource: 'Exchange Rate API',
     dataUpdatedAt: cachedUpdateTime
   };
 };
