@@ -2,13 +2,12 @@ export interface ExchangeRates {
   [key: string]: number;
 }
 
-export interface FreeCurrencyApiResponse {
-  data: ExchangeRates;
+export interface GoogleScriptApiResponse {
+  [key: string]: number;
 }
 
-// FreeCurrencyAPI configuration
-const FREE_CURRENCY_API_URL = 'https://api.freecurrencyapi.com/v1/latest';
-const API_KEY = 'fca_live_3rkAGq5gIp2W0dQXTgmKpVRO0tjGn3nUhaEU5y33';
+// Google Apps Script API configuration
+const GOOGLE_SCRIPT_API_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLgZ8EmJfPC5rwVFqWuHt3fxhJzgLRUg7XERQ1d3U1buxO5MDcnTbjBtsHL_orpNdkssjyKkMaA49VV7pBBZJOnK9ouHuJs216nMZKs5wJSv-W4059xPL5ThQzh0-DjvVh0avPi2YS0vjH9nQGRXtsxvpMJEoLtLRvyqsHibbi_JPAvA4sxngPXQTsSk_ZbtA3QTs_NNo87cwTt_sp_yxG3zyldissoJGog39sy5ShT_mmyFr3fKSppYKIdjXU7sWRKT70JhxbOC4mBYyvlKGC0_aWZOfw&lib=MhOYEOgrGdZKpTmg-ZbVKBRWesUIIKMc-';
 
 // Fallback rates in case API fails
 const FALLBACK_RATES: ExchangeRates = {
@@ -41,22 +40,23 @@ export const fetchExchangeRates = async (baseCurrency = 'USD'): Promise<Exchange
   
   // Return cached rates if still valid
   if (cachedRates && (now - lastFetchTime) < CACHE_DURATION) {
+    console.log('📦 Using cached exchange rates');
     return cachedRates;
   }
 
   try {
-    const url = `${FREE_CURRENCY_API_URL}?apikey=${API_KEY}&base_currency=${baseCurrency}`;
-    const response = await fetch(url);
+    console.log('📡 Fetching exchange rates from Google Apps Script...');
+    const response = await fetch(GOOGLE_SCRIPT_API_URL);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
-    const data: FreeCurrencyApiResponse = await response.json();
+    const data: GoogleScriptApiResponse = await response.json();
     
-    if (data.data && typeof data.data === 'object') {
+    if (data && typeof data === 'object') {
       // Ensure USD is always 1 when base is USD
-      const rates = { ...data.data };
+      const rates = { ...data };
       if (baseCurrency === 'USD' && !rates.USD) {
         rates.USD = 1;
       }
@@ -64,18 +64,24 @@ export const fetchExchangeRates = async (baseCurrency = 'USD'): Promise<Exchange
       cachedRates = rates;
       lastFetchTime = now;
       
-      console.log('✅ Exchange rates updated successfully:', {
+      console.log('✅ Exchange rates updated successfully from Google Apps Script:', {
         timestamp: new Date().toLocaleString(),
         ratesCount: Object.keys(rates).length,
-        baseCurrency
+        baseCurrency,
+        sampleRates: {
+          USD: rates.USD,
+          EUR: rates.EUR,
+          IDR: rates.IDR,
+          SGD: rates.SGD
+        }
       });
       
       return rates;
     } else {
-      throw new Error('Invalid response format from FreeCurrencyAPI');
+      throw new Error('Invalid response format from Google Apps Script API');
     }
   } catch (error) {
-    console.warn('⚠️ Failed to fetch exchange rates from FreeCurrencyAPI:', error);
+    console.warn('⚠️ Failed to fetch exchange rates from Google Apps Script:', error);
     console.log('📦 Using fallback rates');
     
     // Return fallback rates
@@ -163,7 +169,7 @@ export const refreshExchangeRates = async (baseCurrency = 'USD'): Promise<Exchan
   cachedRates = null;
   lastFetchTime = 0;
   
-  console.log('🔄 Forcing fresh exchange rates fetch...');
+  console.log('🔄 Forcing fresh exchange rates fetch from Google Apps Script...');
   return await fetchExchangeRates(baseCurrency);
 };
 
@@ -180,6 +186,7 @@ export const getCacheInfo = () => {
     lastFetchTime: lastFetchTime ? new Date(lastFetchTime) : null,
     cacheAge: lastFetchTime ? Date.now() - lastFetchTime : 0,
     isExpired: !areCachedRatesFresh(),
-    supportedCurrencies: getSupportedCurrencies().length
+    supportedCurrencies: getSupportedCurrencies().length,
+    apiSource: 'Google Apps Script'
   };
 };
