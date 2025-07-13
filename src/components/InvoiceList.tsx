@@ -5,7 +5,7 @@ import { getAllInvoices, deleteInvoice, searchInvoices } from '../utils/storage'
 import { formatCurrency, formatDate } from '../utils/helpers';
 import { translations } from '../utils/translations';
 import { CurrencySelector } from './CurrencySelector';
-import { fetchExchangeRates, convertCurrency, ExchangeRates } from '../utils/currency';
+import { fetchExchangeRates, convertCurrency, ExchangeRates, getLastUpdateTime } from '../utils/currency';
 
 interface InvoiceListProps {
   language: 'en' | 'id';
@@ -243,7 +243,14 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
           </div>
           {lastUpdated && (
             <div className="text-sm text-gray-600">
-              {t.lastUpdated || 'Last updated'}: {lastUpdated.toLocaleTimeString()}
+              <div className="flex flex-col">
+                <span>{t.lastUpdated || 'Last updated'}: {lastUpdated.toLocaleTimeString()}</span>
+                {getLastUpdateTime() && (
+                  <span className="text-xs text-gray-500">
+                    Data: {getLastUpdateTime()}
+                  </span>
+                )}
+              </div>
             </div>
           )}
         </div>

@@ -3,7 +3,12 @@ export interface ExchangeRates {
 }
 
 export interface GoogleScriptApiResponse {
-  [key: string]: number;
+  success: boolean;
+  data: {
+    [key: string]: number;
+  };
+  updated_at_iso: string;
+  updated_at_wib: string;
 }
 
 // Google Apps Script API configuration
@@ -12,26 +17,27 @@ const GOOGLE_SCRIPT_API_URL = 'https://script.googleusercontent.com/macros/echo?
 // Fallback rates in case API fails
 const FALLBACK_RATES: ExchangeRates = {
   USD: 1,
-  EUR: 0.855030161,
-  GBP: 0.7411701097,
-  JPY: 147.382952674,
-  IDR: 16216.853501941,
-  SGD: 1.2791401883,
-  MYR: 4.2555508481,
-  AUD: 1.5196001936,
-  CAD: 1.3685201485,
-  CHF: 0.7961901201,
-  CNY: 7.1730707459,
-  HKD: 7.8478710951,
-  INR: 85.8407266938,
-  KRW: 1377.3219668139,
-  THB: 32.3902733578,
-  PHP: 56.4856101298,
-  BRL: 5.5606405901,
-  MXN: 18.6348428438,
+  EUR: 0.8550301162,
+  GBP: 0.7411701084,
+  JPY: 147.3829497468,
+  IDR: 16220.337330249,
+  SGD: 1.2791402259,
+  MYR: 4.2562105087,
+  AUD: 1.5196002493,
+  CAD: 1.3685202727,
+  CHF: 0.7961901364,
+  CNY: 7.1756207251,
+  HKD: 7.8478709762,
+  INR: 85.8666642397,
+  KRW: 1377.3219271667,
+  THB: 32.3902754112,
+  PHP: 56.4867205252,
+  BRL: 5.5606408263,
+  MXN: 18.6348418786,
 };
 
 let cachedRates: ExchangeRates | null = null;
+let cachedUpdateTime: string | null = null;
 let lastFetchTime = 0;
 const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
 
@@ -52,33 +58,37 @@ export const fetchExchangeRates = async (baseCurrency = 'USD'): Promise<Exchange
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
-    const data: GoogleScriptApiResponse = await response.json();
+    const apiResponse: GoogleScriptApiResponse = await response.json();
     
-    if (data && typeof data === 'object') {
+    if (apiResponse.success && apiResponse.data && typeof apiResponse.data === 'object') {
+      const rates = apiResponse.data;
+      
       // Ensure USD is always 1 when base is USD
-      const rates = { ...data };
       if (baseCurrency === 'USD' && !rates.USD) {
         rates.USD = 1;
       }
       
       cachedRates = rates;
+      cachedUpdateTime = apiResponse.updated_at_wib || apiResponse.updated_at_iso;
       lastFetchTime = now;
       
       console.log('✅ Exchange rates updated successfully from Google Apps Script:', {
         timestamp: new Date().toLocaleString(),
+        dataUpdatedAt: apiResponse.updated_at_wib,
         ratesCount: Object.keys(rates).length,
         baseCurrency,
         sampleRates: {
           USD: rates.USD,
           EUR: rates.EUR,
           IDR: rates.IDR,
-          SGD: rates.SGD
+          SGD: rates.SGD,
+          MYR: rates.MYR
         }
       });
       
       return rates;
     } else {
-      throw new Error('Invalid response format from Google Apps Script API');
+      throw new Error(`API returned success: ${apiResponse.success}, but invalid data format`);
     }
   } catch (error) {
     console.warn('⚠️ Failed to fetch exchange rates from Google Apps Script:', error);
@@ -86,6 +96,7 @@ export const fetchExchangeRates = async (baseCurrency = 'USD'): Promise<Exchange
     
     // Return fallback rates
     cachedRates = FALLBACK_RATES;
+    cachedUpdateTime = 'Fallback data';
     lastFetchTime = now;
     return FALLBACK_RATES;
   }
@@ -134,7 +145,9 @@ export const getSupportedCurrencies = (): string[] => {
   return [
     'USD', 'EUR', 'GBP', 'JPY', 'IDR', 'SGD', 'MYR', 
     'AUD', 'CAD', 'CHF', 'CNY', 'HKD', 'INR', 'KRW',
-    'THB', 'PHP', 'BRL', 'MXN'
+    'THB', 'PHP', 'BRL', 'MXN', 'BGN', 'CZK', 'DKK',
+    'HRK', 'HUF', 'ILS', 'ISK', 'NOK', 'NZD', 'PLN',
+    'RON', 'RUB', 'SEK', 'TRY', 'ZAR'
   ];
 };
 
@@ -158,6 +171,21 @@ export const getCurrencyInfo = (currencyCode: string) => {
     PHP: { name: 'Philippine Peso', symbol: '₱' },
     BRL: { name: 'Brazilian Real', symbol: 'R$' },
     MXN: { name: 'Mexican Peso', symbol: 'MX$' },
+    BGN: { name: 'Bulgarian Lev', symbol: 'лв' },
+    CZK: { name: 'Czech Koruna', symbol: 'Kč' },
+    DKK: { name: 'Danish Krone', symbol: 'kr' },
+    HRK: { name: 'Croatian Kuna', symbol: 'kn' },
+    HUF: { name: 'Hungarian Forint', symbol: 'Ft' },
+    ILS: { name: 'Israeli Shekel', symbol: '₪' },
+    ISK: { name: 'Icelandic Krona', symbol: 'kr' },
+    NOK: { name: 'Norwegian Krone', symbol: 'kr' },
+    NZD: { name: 'New Zealand Dollar', symbol: 'NZ$' },
+    PLN: { name: 'Polish Zloty', symbol: 'zł' },
+    RON: { name: 'Romanian Leu', symbol: 'lei' },
+    RUB: { name: 'Russian Ruble', symbol: '₽' },
+    SEK: { name: 'Swedish Krona', symbol: 'kr' },
+    TRY: { name: 'Turkish Lira', symbol: '₺' },
+    ZAR: { name: 'South African Rand', symbol: 'R' },
   };
   
   return currencyMap[currencyCode] || { name: currencyCode, symbol: currencyCode };
@@ -167,6 +195,7 @@ export const getCurrencyInfo = (currencyCode: string) => {
 export const refreshExchangeRates = async (baseCurrency = 'USD'): Promise<ExchangeRates> => {
   // Clear cache to force fresh fetch
   cachedRates = null;
+  cachedUpdateTime = null;
   lastFetchTime = 0;
   
   console.log('🔄 Forcing fresh exchange rates fetch from Google Apps Script...');
@@ -187,6 +216,12 @@ export const getCacheInfo = () => {
     cacheAge: lastFetchTime ? Date.now() - lastFetchTime : 0,
     isExpired: !areCachedRatesFresh(),
     supportedCurrencies: getSupportedCurrencies().length,
-    apiSource: 'Google Apps Script'
+    apiSource: 'Google Apps Script',
+    dataUpdatedAt: cachedUpdateTime
   };
+};
+
+// Function to get the last update time from API
+export const getLastUpdateTime = (): string | null => {
+  return cachedUpdateTime;
 };
