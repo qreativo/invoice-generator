@@ -62,6 +62,7 @@ function App() {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [showPasswordReset, setShowPasswordReset] = useState(false);
+  const [showUserProfile, setShowUserProfile] = useState(false);
   const [resetToken, setResetToken] = useState<string | undefined>(undefined);
   const [showNotification, setShowNotification] = useState<{
     message: string;
