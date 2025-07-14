@@ -91,7 +91,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ language }) => {
     setShowPassword(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
