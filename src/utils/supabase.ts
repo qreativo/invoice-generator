@@ -164,36 +164,12 @@ export class SupabaseService {
       const { data, error } = await this.supabaseClient
         .from('users')
         .select('*')
-      if (!userData || userData.length === 0) {
-      }
 
       if (error) {
         throw new Error(error.message);
       }
-      const user = userData[0];
-      
-      // Simple password verification for demo
-      let isValidPassword = false;
-      
-      // Direct password comparison for demo accounts
-      if (user.username === 'admin' && password === 'admin123') {
-        isValidPassword = true;
-      } else if (user.username === 'demo' && password === 'demo123') {
-        isValidPassword = true;
-      } else if (user.username === 'lunara' && password === 'lunara2025') {
-        isValidPassword = true;
-      }
-      
-      if (!isValidPassword) {
-        console.log('Invalid password for user:', username);
-        return null;
-      }
 
-      // Update last login
-      await this.supabaseClient
-        .from('users')
-        .update({ last_login: new Date().toISOString() })
-        .eq('id', user.id);
+
       return data.map(user => ({
         id: user.id,
         username: user.username,
