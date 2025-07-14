@@ -198,13 +198,8 @@ export class SupabaseService {
 
   async createUser(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'lastLogin'>): Promise<User> {
     try {
-      // Check if admin client is available
-      if (!this.supabaseAdminClient) {
-        throw new Error('Admin client not configured. Please set VITE_SUPABASE_SERVICE_ROLE_KEY in your environment variables.');
-      }
-
-      // Use admin client for user creation to bypass RLS
-      const { data, error } = await this.supabaseAdminClient
+      // Use regular client for user creation
+      const { data, error } = await this.supabaseClient
         .from('users')
         .insert({
           username: userData.username,
@@ -243,11 +238,6 @@ export class SupabaseService {
 
   async updateUser(user: User): Promise<User> {
     try {
-      // Check if admin client is available
-      if (!this.supabaseAdminClient) {
-        throw new Error('Admin client not configured. Please set VITE_SUPABASE_SERVICE_ROLE_KEY in your environment variables.');
-      }
-
       const updateData: any = {
         username: user.username,
         email: user.email,
@@ -264,8 +254,8 @@ export class SupabaseService {
         updateData.password_hash = '$2b$10$rOzJqQZQZQZQZQZQZQZQZOzJqQZQZQZQZQZQZQZQZOzJqQZQZQZQZQ';
       }
 
-      // Use admin client for user updates to bypass RLS
-      const { data, error } = await this.supabaseAdminClient
+      // Use regular client for user updates
+      const { data, error } = await this.supabaseClient
         .from('users')
         .update(updateData)
         .eq('id', user.id)
@@ -299,13 +289,8 @@ export class SupabaseService {
 
   async deleteUser(userId: string): Promise<void> {
     try {
-      // Check if admin client is available
-      if (!this.supabaseAdminClient) {
-        throw new Error('Admin client not configured. Please set VITE_SUPABASE_SERVICE_ROLE_KEY in your environment variables.');
-      }
-
-      // Use admin client for user deletion to bypass RLS
-      const { error } = await this.supabaseAdminClient
+      // Use regular client for user deletion
+      const { error } = await this.supabaseClient
         .from('users')
         .delete()
         .eq('id', userId);
