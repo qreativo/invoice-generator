@@ -222,10 +222,33 @@ function App() {
   }
 
   const handlePrint = () => {
-    // Ensure the page is fully loaded before printing
-    setTimeout(() => {
-      window.print();
-    }, 100);
+    try {
+      // Ensure DOM is ready and stable before printing
+      if (document.readyState === 'complete') {
+        // Add small delay to ensure all styles are applied
+        setTimeout(() => {
+          window.print();
+        }, 300);
+      } else {
+        // Wait for document to be ready
+        document.addEventListener('DOMContentLoaded', () => {
+          setTimeout(() => {
+            window.print();
+          }, 300);
+        });
+      }
+    } catch (error) {
+      console.error('Print error:', error);
+      // Fallback: try direct print
+      setTimeout(() => {
+        try {
+          window.print();
+        } catch (fallbackError) {
+          console.error('Fallback print error:', fallbackError);
+          alert('Unable to open print dialog. Please try using Ctrl+P or Cmd+P');
+        }
+      }, 500);
+    }
   };
 
   const handleBackToList = () => {
@@ -365,6 +388,15 @@ function App() {
       {/* Enhanced Print Styles */}
       <style jsx>{`
         @media print {
+          /* Prevent print dialog crashes */
+          * {
+            transform: none !important;
+            transition: none !important;
+            animation: none !important;
+            filter: none !important;
+            backdrop-filter: none !important;
+          }
+          
           body * {
             visibility: hidden;
           }
@@ -380,6 +412,17 @@ function App() {
           }
           @page {
             margin: 1in;
+          }
+          
+          /* Remove problematic styles that can cause crashes */
+          .animate-float,
+          .animate-gradient,
+          .group:hover,
+          .hover\\:scale-105,
+          .hover\\:shadow-xl {
+            transform: none !important;
+            animation: none !important;
+            transition: none !important;
           }
         }
         

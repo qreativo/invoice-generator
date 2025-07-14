@@ -27,17 +27,17 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data, language }
       {/* Print Styles */}
       <style jsx>{`
         @media print {
+          /* A4 Page Setup with 1 inch margins */
+          @page {
+            size: A4;
+            margin: 1in; /* 2.54cm on all sides */
+          }
+          
           /* Reset all margins and paddings for print */
           * {
             -webkit-print-color-adjust: exact !important;
             color-adjust: exact !important;
             print-color-adjust: exact !important;
-          }
-          
-          /* A4 Page Setup with 1 inch margins */
-          @page {
-            size: A4;
-            margin: 1in; /* 2.54cm on all sides */
           }
           
           /* Hide everything except the invoice */
@@ -145,6 +145,19 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data, language }
           .print-totals {
             width: 250pt !important;
             margin-left: auto !important;
+          }
+          
+          /* Prevent crashes with complex selectors */
+          .invoice-print-container {
+            transform: none !important;
+            transition: none !important;
+            animation: none !important;
+          }
+          
+          .invoice-print-container * {
+            transform: none !important;
+            transition: none !important;
+            animation: none !important;
           }
         }
         
