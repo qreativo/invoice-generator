@@ -30,17 +30,19 @@ class DataService {
   async login(username: string, password: string): Promise<User | null> {
     if (this.useSupabase) {
       try {
+        console.log('🔄 Using Supabase login for:', username);
         const user = await supabaseService.login(username, password);
         if (!user) {
           // If Supabase login fails or returns null, fall back to localStorage
-          console.log('Supabase login failed, falling back to localStorage');
+          console.log('❌ Supabase login failed, falling back to localStorage');
           return localAuth.login(username, password);
         }
         
+        console.log('✅ Supabase login successful:', user.username);
         window.localStorage.setItem('lunara-current-user', JSON.stringify(user));
         return user;
       } catch (error) {
-        console.error('Supabase login failed, falling back to localStorage:', error);
+        console.error('❌ Supabase login error, falling back to localStorage:', error);
         return localAuth.login(username, password);
       }
     }

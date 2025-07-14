@@ -27,46 +27,74 @@ export class SupabaseService {
   // Authentication
   async login(username: string, password: string): Promise<User | null> {
     try {
+      console.log('🔐 Attempting login for username:', username);
+      
       // Query user by username
       const { data: userData, error: userError } = await this.supabaseClient
         .from('users')
         .select('*')
         .eq('username', username)
         .eq('is_active', true)
-        .limit(1);
+        .single();
 
       if (userError) {
         console.error('Supabase user query error:', userError);
+        console.log('🔍 Trying to find user in database...');
+        
+        // Try to get all users to debug
+        const { data: allUsers } = await this.supabaseClient
+          .from('users')
+          .select('username, email, role')
+          .limit(10);
+        
+        console.log('📋 Available users in database:', allUsers);
         return null;
       }
 
-      if (!userData || userData.length === 0) {
+      if (!userData) {
+        console.log('❌ No user found with username:', username);
         return null;
       }
 
-      const user = userData[0];
-      if (user) {
-        return {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          role: user.role as 'admin' | 'member',
-          isActive: user.is_active,
-          createdAt: user.created_at,
-          updatedAt: user.updated_at,
-          lastLogin: user.last_login,
-          fullName: user.full_name,
-          avatar: user.avatar,
-          preferences: user.preferences || {
-            theme: 'modern',
-            currency: 'USD',
-            language: 'en',
-            notifications: { email: true, whatsapp: true }
-          }
-        };
+      const user = userData;
+      console.log('👤 Found user:', { username: user.username, role: user.role });
+      
+      // Simple password check for demo purposes
+      if (user.password_hash !== password) {
+        console.log('❌ Password mismatch for user:', username);
+        console.log('Expected:', user.password_hash, 'Got:', password);
+        return null;
       }
+      
+      console.log('✅ Login successful for:', username);
+      
+      // Update last login
+      await this.supabaseClient
+        .from('users')
+        .update({ last_login: new Date().toISOString() })
+        .eq('id', user.id);
+      
+      return {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        password: '', // Don't return password
+        role: user.role as 'admin' | 'member',
+        isActive: user.is_active,
+        createdAt: user.created_at,
+        updatedAt: user.updated_at,
+        lastLogin: user.last_login,
+        fullName: user.full_name,
+        phone: user.phone,
+        avatar: user.avatar,
+        preferences: user.preferences || {
+          theme: 'modern',
+          currency: 'USD',
+          language: 'en',
+          notifications: { email: true, whatsapp: true }
+        }
+      };
 
-      return null;
     } catch (error) {
       console.error('Supabase login failed:', error);
       return null;
