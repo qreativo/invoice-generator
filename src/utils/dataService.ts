@@ -381,5 +381,3 @@ export const dataService = new DataService();
 
 // Initialize on module load
 dataService.initialize();
-
-export { dataService }
