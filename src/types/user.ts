@@ -8,4 +8,16 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   lastLogin?: string;
+  phone?: string;
+  fullName?: string;
+  avatar?: string;
+  preferences?: {
+    language: 'en' | 'id';
+    theme: string;
+    currency: string;
+    notifications: {
+      email: boolean;
+      whatsapp: boolean;
+    };
+  };
 }

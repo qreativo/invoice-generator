@@ -14,6 +14,7 @@ interface HeaderProps {
   onLogout: () => void;
   onAdminPanel?: () => void;
   onPasswordReset?: () => void;
+  onUserProfile?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -158,6 +159,17 @@ export const Header: React.FC<HeaderProps> = ({
                             <span>Reset Password</span>
                           </button>
                         )}
+                        
+                        <button
+                          onClick={() => {
+                            setShowUserMenu(false);
+                            onUserProfile && onUserProfile();
+                          }}
+                          className="w-full flex items-center space-x-2 px-3 py-2 text-left text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200"
+                        >
+                          <User className="h-4 w-4" />
+                          <span>Edit Profile</span>
+                        </button>
                         
                         <button
                           onClick={() => {

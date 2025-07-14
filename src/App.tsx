@@ -10,6 +10,7 @@ import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
 import { AdminPanel } from './components/AdminPanel';
 import { PasswordResetForm } from './components/PasswordResetForm';
+import { UserProfile } from './components/UserProfile';
 import { saveInvoiceData, loadInvoiceData, clearInvoiceData, saveInvoice, updateInvoiceStatus } from './utils/storage';
 import { dataService } from './utils/dataService';
 import { translations } from './utils/translations';
@@ -155,6 +156,25 @@ function App() {
   };
   const handlePasswordReset = () => {
     setShowPasswordReset(true);
+  };
+
+  const handleUserProfile = () => {
+    setShowUserProfile(true);
+  };
+
+  const handleUserUpdate = (updatedUser: User) => {
+    setCurrentUser(updatedUser);
+    
+    // Update app language and theme if changed
+    if (updatedUser.preferences?.language) {
+      handleLanguageChange(updatedUser.preferences.language);
+    }
+    if (updatedUser.preferences?.theme) {
+      handleThemeChange(updatedUser.preferences.theme);
+    }
+    
+    setShowUserProfile(false);
+    showNotificationMessage('Profile updated successfully!', 'success');
   };
 
 
@@ -306,6 +326,31 @@ function App() {
     );
   }
 
+  // Show user profile
+  if (showUserProfile && currentUser) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
+        <Header
+          language={invoiceData.language}
+          theme={invoiceData.theme}
+          onLanguageChange={handleLanguageChange}
+          onThemeChange={handleThemeChange}
+          user={currentUser}
+          onLogin={() => setShowLogin(true)}
+          onLogout={handleLogout}
+          onPasswordReset={handlePasswordReset}
+          onUserProfile={handleUserProfile}
+        />
+        <UserProfile
+          user={currentUser}
+          language={invoiceData.language}
+          onUserUpdate={handleUserUpdate}
+          onClose={() => setShowUserProfile(false)}
+        />
+      </div>
+    );
+  }
+
   const handlePrint = () => {
     try {
       // Ensure DOM is ready and stable before printing
@@ -352,6 +397,7 @@ function App() {
         onLogout={handleLogout}
         onAdminPanel={() => setCurrentView('admin')}
         onPasswordReset={handlePasswordReset}
+        onUserProfile={handleUserProfile}
       />
 
       {/* Navigation */}
