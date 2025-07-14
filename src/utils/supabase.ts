@@ -137,6 +137,7 @@ export class SupabaseService {
         .from('users')
         .select('*')
       if (!userData || userData.length === 0) {
+      }
 
       if (error) {
         throw new Error(error.message);
