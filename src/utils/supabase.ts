@@ -135,11 +135,7 @@ export class SupabaseService {
         isActive: user.is_active,
         createdAt: user.created_at,
         updatedAt: user.updated_at,
-        lastLogin: user.last_login,
-        phone: user.phone,
-        fullName: user.full_name,
-        avatar: user.avatar,
-        preferences: user.preferences
+        lastLogin: user.last_login
       }));
     } catch (error: any) {
       console.error('Get users error:', error);
@@ -189,7 +185,11 @@ export class SupabaseService {
         username: user.username,
         email: user.email,
         role: user.role,
-        is_active: user.isActive
+        is_active: user.isActive,
+        phone: user.phone,
+        full_name: user.fullName,
+        avatar: user.avatar,
+        preferences: user.preferences
       };
 
       // Only update password if provided
