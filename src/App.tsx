@@ -222,7 +222,10 @@ function App() {
   }
 
   const handlePrint = () => {
-    window.print();
+    // Ensure the page is fully loaded before printing
+    setTimeout(() => {
+      window.print();
+    }, 100);
   };
 
   const handleBackToList = () => {
