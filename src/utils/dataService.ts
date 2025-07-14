@@ -22,6 +22,7 @@ class DataService {
     if (supabaseUrl && supabaseKey) {
       this.useSupabase = true;
       console.log('✅ Data Service initialized: Supabase Mode');
+      console.log('🔗 Supabase URL:', supabaseUrl);
     } else {
       this.useApi = await isApiAvailable();
       console.log(`✅ Data Service initialized: ${this.useApi ? 'API Mode' : 'Local Storage Mode'}`);

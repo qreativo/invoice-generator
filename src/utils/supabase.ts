@@ -5,29 +5,12 @@ import { InvoiceData } from '../types/invoice';
 // Supabase configuration
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabaseServiceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Service role client for admin operations
-export const supabaseAdmin = supabaseServiceKey && supabaseServiceKey.trim() !== ''
-  ? createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    })
-  : null;
-
 // Database service for Supabase integration
 export class SupabaseService {
-  private supabaseClient: typeof supabase;
-  private supabaseAdminClient: typeof supabaseAdmin | null;
-
-  constructor() {
-    this.supabaseClient = supabase;
-    this.supabaseAdminClient = supabaseAdmin;
-  }
+  private supabaseClient = supabase;
 
   // Authentication
   async login(username: string, password: string): Promise<User | null> {
@@ -44,15 +27,6 @@ export class SupabaseService {
 
       if (userError) {
         console.error('Supabase user query error:', userError);
-        console.log('🔍 Trying to find user in database...');
-        
-        // Try to get all users to debug
-        const { data: allUsers } = await this.supabaseClient
-          .from('users')
-          .select('username, email, role')
-          .limit(10);
-        
-        console.log('📋 Available users in database:', allUsers);
         return null;
       }
 
@@ -67,7 +41,6 @@ export class SupabaseService {
       // Simple password check for demo purposes
       if (user.password_hash !== password) {
         console.log('❌ Password mismatch for user:', username);
-        console.log('Expected:', user.password_hash, 'Got:', password);
         return null;
       }
       
@@ -130,7 +103,7 @@ export class SupabaseService {
         .insert({
           username: userData.username,
           email: userData.email,
-          password_hash: '$2b$10$rOzJqQZQZQZQZQZQZQZQZOzJqQZQZQZQZQZQZQZQZOzJqQZQZQZQZQ', // Demo hash
+          password_hash: userData.password, // In production, hash this
           role: 'member',
           is_active: true,
           last_login: new Date().toISOString()
@@ -169,11 +142,11 @@ export class SupabaseService {
       const { data, error } = await this.supabaseClient
         .from('users')
         .select('*')
+        .order('created_at', { ascending: false });
 
       if (error) {
         throw new Error(error.message);
       }
-
 
       return data.map(user => ({
         id: user.id,
@@ -198,15 +171,18 @@ export class SupabaseService {
 
   async createUser(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'lastLogin'>): Promise<User> {
     try {
-      // Use regular client for user creation
       const { data, error } = await this.supabaseClient
         .from('users')
         .insert({
           username: userData.username,
           email: userData.email,
-          password_hash: '$2b$10$rOzJqQZQZQZQZQZQZQZQZOzJqQZQZQZQZQZQZQZQZOzJqQZQZQZQZQ',
+          password_hash: userData.password, // In production, hash this
           role: userData.role,
-          is_active: userData.isActive
+          is_active: userData.isActive,
+          full_name: userData.fullName,
+          phone: userData.phone,
+          avatar: userData.avatar,
+          preferences: userData.preferences
         })
         .select()
         .single();
@@ -251,10 +227,9 @@ export class SupabaseService {
 
       // Only update password if provided
       if (user.password) {
-        updateData.password_hash = '$2b$10$rOzJqQZQZQZQZQZQZQZQZOzJqQZQZQZQZQZQZQZQZOzJqQZQZQZQZQ';
+        updateData.password_hash = user.password; // In production, hash this
       }
 
-      // Use regular client for user updates
       const { data, error } = await this.supabaseClient
         .from('users')
         .update(updateData)
@@ -289,7 +264,6 @@ export class SupabaseService {
 
   async deleteUser(userId: string): Promise<void> {
     try {
-      // Use regular client for user deletion
       const { error } = await this.supabaseClient
         .from('users')
         .delete()
