@@ -250,6 +250,7 @@ function App() {
           user={currentUser}
           onLogin={() => setShowLogin(true)}
           onLogout={handleLogout}
+          onUserProfile={handleUserProfile}
         />
         <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
           <div className="text-center">
