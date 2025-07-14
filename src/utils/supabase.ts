@@ -135,7 +135,11 @@ export class SupabaseService {
         isActive: user.is_active,
         createdAt: user.created_at,
         updatedAt: user.updated_at,
-        lastLogin: user.last_login
+        lastLogin: user.last_login,
+        phone: user.phone,
+        fullName: user.full_name,
+        avatar: user.avatar,
+        preferences: user.preferences
       }));
     } catch (error: any) {
       console.error('Get users error:', error);
