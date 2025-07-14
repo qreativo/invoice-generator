@@ -10,7 +10,7 @@ import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
 import { AdminPanel } from './components/AdminPanel';
 import { saveInvoiceData, loadInvoiceData, clearInvoiceData, saveInvoice, updateInvoiceStatus } from './utils/storage';
-import { getCurrentUser, logout } from './utils/auth';
+import { dataService } from './utils/dataService';
 import { translations } from './utils/translations';
 import { generateInvoiceNumber } from './utils/helpers';
 
@@ -67,13 +67,16 @@ function App() {
   const t = translations[invoiceData.language];
 
   useEffect(() => {
+    // Initialize data service
+    dataService.initialize();
+    
     const savedData = loadInvoiceData();
     if (savedData) {
       setInvoiceData(savedData);
     }
     
     // Check for existing user session
-    const user = getCurrentUser();
+    const user = dataService.getCurrentUser();
     setCurrentUser(user);
     
     // Listen for notification events from components
@@ -96,7 +99,7 @@ function App() {
     const updatedData = { ...invoiceData, updatedAt: new Date().toISOString() };
     setInvoiceData(updatedData);
     saveInvoiceData(updatedData);
-    saveInvoice(updatedData);
+    dataService.saveInvoice(updatedData);
     
     // Auto-redirect to preview after save
     setCurrentView('preview');
@@ -132,7 +135,7 @@ function App() {
   };
 
   const handleLogout = () => {
-    logout();
+    dataService.logout();
     setCurrentUser(undefined);
     setCurrentView('list');
     showNotificationMessage('Logged out successfully', 'success');
@@ -191,8 +194,8 @@ function App() {
     
     setInvoiceData(updatedData);
     saveInvoiceData(updatedData);
-    saveInvoice(updatedData);
-    updateInvoiceStatus(updatedData.id, newStatus);
+    dataService.saveInvoice(updatedData);
+    dataService.updateInvoiceStatus(updatedData.id, newStatus);
     
     showNotificationMessage(t.statusUpdated || 'Status updated successfully', 'success');
   };

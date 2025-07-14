@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { FileText, Eye, EyeOff, User, Lock, Mail, UserPlus, ArrowLeft } from 'lucide-react';
 import { Turnstile } from '@marsidev/react-turnstile';
 import { translations } from '../utils/translations';
-import { createUser } from '../utils/auth';
+import { dataService } from '../utils/dataService';
 import { User as UserType } from '../types/user';
 
 interface RegisterFormProps {
@@ -101,12 +101,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
         throw new Error(t.captchaRequired || 'Please complete the security verification');
       }
 
-      const newUser = createUser({
+      const newUser = await dataService.register({
         username: formData.username.trim(),
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
-        role: 'member',
-        isActive: true
+        turnstileToken
       });
 
       onRegister(newUser);

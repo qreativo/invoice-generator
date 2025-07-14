@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FileText, Eye, EyeOff, User, Lock } from 'lucide-react';
 import { translations } from '../utils/translations';
-import { login } from '../utils/auth';
+import { dataService } from '../utils/dataService';
 import { User as UserType } from '../types/user';
 
 interface LoginFormProps {
@@ -31,7 +31,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     setIsLoading(true);
 
     try {
-      const user = login(username, password);
+      const user = await dataService.login(username, password);
       if (user) {
         onLogin(user);
       } else {

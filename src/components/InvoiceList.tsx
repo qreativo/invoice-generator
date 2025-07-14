@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Eye, Edit, Trash2, FileText, Calendar, DollarSign, Clock, CheckCircle, AlertCircle, XCircle, RefreshCw } from 'lucide-react';
 import { InvoiceData } from '../types/invoice';
-import { getAllInvoices, deleteInvoice, searchInvoices } from '../utils/storage';
+import { dataService } from '../utils/dataService';
 import { formatCurrency, formatDate } from '../utils/helpers';
 import { translations } from '../utils/translations';
 import { CurrencySelector } from './CurrencySelector';
@@ -49,8 +49,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
   }, [displayCurrency, exchangeRates]);
 
   const loadInvoices = () => {
-    const allInvoices = getAllInvoices();
-    setInvoices(allInvoices);
+    dataService.getAllInvoices().then(setInvoices);
   };
 
   const loadExchangeRates = async () => {
@@ -102,7 +101,14 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
   };
 
   const filterAndSortInvoices = () => {
-    let filtered = searchQuery ? searchInvoices(searchQuery) : invoices;
+    let filtered = searchQuery ? [] : invoices; // Will be handled by dataService
+    
+    if (searchQuery) {
+      dataService.searchInvoices(searchQuery).then(results => {
+        setFilteredInvoices(results);
+      });
+      return;
+    }
     
     if (selectedStatus !== 'all') {
       filtered = filtered.filter(invoice => invoice.status === selectedStatus);
@@ -133,7 +139,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
 
   const handleDeleteInvoice = (id: string) => {
     if (window.confirm(t.confirmDelete || 'Are you sure you want to delete this invoice?')) {
-      deleteInvoice(id);
+      dataService.deleteInvoice(id);
       loadInvoices();
     }
   };

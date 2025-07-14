@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, UserPlus, Edit, Trash2, Search, Shield, User, Eye, EyeOff, Save, X, Settings, Globe } from 'lucide-react';
 import { User as UserType } from '../types/user';
-import { getAllUsers, createUser, updateUser, deleteUser } from '../utils/auth';
+import { dataService } from '../utils/dataService';
 import { translations } from '../utils/translations';
 
 interface AdminPanelProps {
@@ -46,8 +46,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ language }) => {
   }, [users, searchQuery]);
 
   const loadUsers = () => {
-    const allUsers = getAllUsers();
-    setUsers(allUsers);
+    dataService.getAllUsers().then(setUsers);
   };
 
   const loadGoogleAuthSettings = () => {
@@ -114,7 +113,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ language }) => {
           updatedUser.password = formData.password;
         }
 
-        updateUser(updatedUser);
+        await dataService.updateUser(updatedUser);
         setSuccess(t.userUpdated || 'User updated successfully!');
       } else {
         // Create new user
@@ -126,7 +125,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ language }) => {
           isActive: formData.isActive
         };
 
-        createUser(newUser);
+        await dataService.createUser(newUser);
         setSuccess(t.userCreated || 'User created successfully!');
       }
 
