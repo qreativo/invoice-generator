@@ -16,10 +16,18 @@ export const supabaseAdmin = supabaseServiceKey
 
 // Database service for Supabase integration
 export class SupabaseService {
+  private supabaseClient: typeof supabase;
+  private supabaseAdminClient: typeof supabaseAdmin;
+
+  constructor() {
+    this.supabaseClient = supabase;
+    this.supabaseAdminClient = supabaseAdmin;
+  }
+
   // Authentication
   async login(username: string, password: string): Promise<User | null> {
     try {
-      const { data: userData, error } = await this.supabase
+      const { data: userData, error } = await this.supabaseClient
         .rpc('authenticate_user', {
           p_username: username,
           p_password: password
@@ -71,7 +79,7 @@ export class SupabaseService {
   }): Promise<User> {
     try {
       // Check if user exists
-      const { data: existingUsers } = await supabase
+      const { data: existingUsers } = await this.supabaseClient
         .from('users')
         .select('id')
         .or(`username.eq.${userData.username},email.eq.${userData.email}`)
@@ -82,7 +90,7 @@ export class SupabaseService {
       }
 
       // Create new user
-      const { data: newUser, error } = await supabase
+      const { data: newUser, error } = await this.supabaseClient
         .from('users')
         .insert({
           username: userData.username,
@@ -123,7 +131,7 @@ export class SupabaseService {
   // User management
   async getAllUsers(): Promise<User[]> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await this.supabaseClient
         .from('users')
         .select('*')
         .order('created_at', { ascending: false });
@@ -156,7 +164,7 @@ export class SupabaseService {
   async createUser(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'lastLogin'>): Promise<User> {
     try {
       // Use admin client for user creation to bypass RLS
-      const { data, error } = await supabaseAdmin
+      const { data, error } = await this.supabaseAdminClient
         .from('users')
         .insert({
           username: userData.username,
@@ -212,7 +220,7 @@ export class SupabaseService {
       }
 
       // Use admin client for user updates to bypass RLS
-      const { data, error } = await supabaseAdmin
+      const { data, error } = await this.supabaseAdminClient
         .from('users')
         .update(updateData)
         .eq('id', user.id)
@@ -247,7 +255,7 @@ export class SupabaseService {
   async deleteUser(userId: string): Promise<void> {
     try {
       // Use admin client for user deletion to bypass RLS
-      const { error } = await supabaseAdmin
+      const { error } = await this.supabaseAdminClient
         .from('users')
         .delete()
         .eq('id', userId);
@@ -264,7 +272,7 @@ export class SupabaseService {
   // Invoice management
   async getAllInvoices(): Promise<InvoiceData[]> {
     try {
-      const { data: invoices, error: invoiceError } = await supabase
+      const { data: invoices, error: invoiceError } = await this.supabaseClient
         .from('invoices')
         .select('*')
         .order('created_at', { ascending: false });
@@ -276,7 +284,7 @@ export class SupabaseService {
       // Get items for each invoice
       const invoicesWithItems = await Promise.all(
         invoices.map(async (invoice) => {
-          const { data: items, error: itemsError } = await supabase
+          const { data: items, error: itemsError } = await this.supabaseClient
             .from('invoice_items')
             .select('*')
             .eq('invoice_id', invoice.id)
@@ -375,7 +383,7 @@ export class SupabaseService {
       let savedInvoice;
       if (existingInvoiceArray && existingInvoiceArray.length > 0) {
         // Update existing invoice
-        const { data, error } = await supabase
+        const { data, error } = await this.supabaseClient
           .from('invoices')
           .update(invoiceData)
           .eq('id', invoice.id)
@@ -388,7 +396,7 @@ export class SupabaseService {
         savedInvoice = data;
       } else {
         // Create new invoice
-        const { data, error } = await supabase
+        const { data, error } = await this.supabaseClient
           .from('invoices')
           .insert(invoiceData)
           .select()
@@ -401,7 +409,7 @@ export class SupabaseService {
       }
 
       // Delete existing items
-      await supabase
+      await this.supabaseClient
         .from('invoice_items')
         .delete()
         .eq('invoice_id', invoice.id);
@@ -418,7 +426,7 @@ export class SupabaseService {
           total_amount: item.total
         }));
 
-        const { error: itemsError } = await supabase
+        const { error: itemsError } = await this.supabaseClient
           .from('invoice_items')
           .insert(itemsData);
 
@@ -436,7 +444,7 @@ export class SupabaseService {
 
   async deleteInvoice(id: string): Promise<void> {
     try {
-      const { error } = await supabase
+      const { error } = await this.supabaseClient
         .from('invoices')
         .delete()
         .eq('id', id);
@@ -452,7 +460,7 @@ export class SupabaseService {
 
   async updateInvoiceStatus(id: string, status: InvoiceData['status']): Promise<void> {
     try {
-      const { error } = await supabase
+      const { error } = await this.supabaseClient
         .from('invoices')
         .update({ 
           status, 
@@ -471,7 +479,7 @@ export class SupabaseService {
 
   async searchInvoices(query: string): Promise<InvoiceData[]> {
     try {
-      const { data: invoices, error } = await supabase
+      const { data: invoices, error } = await this.supabaseClient
         .from('invoices')
         .select('*')
         .or(`invoice_number.ilike.%${query}%,company_name.ilike.%${query}%,client_name.ilike.%${query}%,status.ilike.%${query}%`)
@@ -484,7 +492,7 @@ export class SupabaseService {
       // Get items for each invoice (simplified for search)
       const invoicesWithItems = await Promise.all(
         invoices.map(async (invoice) => {
-          const { data: items } = await supabase
+          const { data: items } = await this.supabaseClient
             .from('invoice_items')
             .select('*')
             .eq('invoice_id', invoice.id)
