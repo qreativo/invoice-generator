@@ -1,4 +1,5 @@
 import { apiService, isApiAvailable } from './api';
+import { supabaseService } from './supabase';
 import { User } from '../types/user';
 import { InvoiceData } from '../types/invoice';
 
@@ -9,14 +10,37 @@ import * as localStorage from './storage';
 // Hybrid data service that uses API when available, localStorage as fallback
 class DataService {
   private useApi: boolean = false;
+  private useSupabase: boolean = false;
 
   async initialize(): Promise<void> {
-    this.useApi = await isApiAvailable();
-    console.log(`🔄 Data Service initialized: ${this.useApi ? 'API Mode' : 'Local Storage Mode'}`);
+    // Check if Supabase is configured
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    if (supabaseUrl && supabaseKey) {
+      this.useSupabase = true;
+      console.log('🔄 Data Service initialized: Supabase Mode');
+    } else {
+      this.useApi = await isApiAvailable();
+      console.log(`🔄 Data Service initialized: ${this.useApi ? 'API Mode' : 'Local Storage Mode'}`);
+    }
   }
 
   // Authentication methods
   async login(username: string, password: string): Promise<User | null> {
+    if (this.useSupabase) {
+      try {
+        const user = await supabaseService.login(username, password);
+        if (user) {
+          localStorage.setItem('lunara-current-user', JSON.stringify(user));
+        }
+        return user;
+      } catch (error) {
+        console.error('Supabase login failed, falling back to localStorage:', error);
+        return localAuth.login(username, password);
+      }
+    }
+    
     if (this.useApi) {
       try {
         const response = await apiService.login(username, password);
@@ -37,6 +61,23 @@ class DataService {
     password: string;
     turnstileToken: string;
   }): Promise<User> {
+    if (this.useSupabase) {
+      try {
+        const user = await supabaseService.register(userData);
+        localStorage.setItem('lunara-current-user', JSON.stringify(user));
+        return user;
+      } catch (error) {
+        console.error('Supabase register failed, falling back to localStorage:', error);
+        return localAuth.createUser({
+          username: userData.username,
+          email: userData.email,
+          password: userData.password,
+          role: 'member',
+          isActive: true
+        });
+      }
+    }
+    
     if (this.useApi) {
       try {
         const response = await apiService.register(userData);
@@ -67,6 +108,12 @@ class DataService {
   }
 
   async logout(): Promise<void> {
+    if (this.useSupabase) {
+      // Just clear local storage for Supabase
+      localStorage.removeItem('lunara-current-user');
+      return;
+    }
+    
     if (this.useApi) {
       try {
         await apiService.logout();
@@ -85,6 +132,14 @@ class DataService {
 
   // User management methods
   async getAllUsers(): Promise<User[]> {
+    if (this.useSupabase) {
+      try {
+        return await supabaseService.getAllUsers();
+      } catch (error) {
+        console.error('Supabase getAllUsers failed, falling back to localStorage:', error);
+      }
+    }
+    
     if (this.useApi) {
       try {
         return await apiService.getAllUsers();
@@ -96,6 +151,14 @@ class DataService {
   }
 
   async createUser(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'lastLogin'>): Promise<User> {
+    if (this.useSupabase) {
+      try {
+        return await supabaseService.createUser(userData);
+      } catch (error) {
+        console.error('Supabase createUser failed, falling back to localStorage:', error);
+      }
+    }
+    
     if (this.useApi) {
       try {
         return await apiService.createUser(userData);
@@ -107,6 +170,14 @@ class DataService {
   }
 
   async updateUser(user: User): Promise<User> {
+    if (this.useSupabase) {
+      try {
+        return await supabaseService.updateUser(user);
+      } catch (error) {
+        console.error('Supabase updateUser failed, falling back to localStorage:', error);
+      }
+    }
+    
     if (this.useApi) {
       try {
         return await apiService.updateUser(user);
@@ -118,6 +189,15 @@ class DataService {
   }
 
   async deleteUser(userId: string): Promise<void> {
+    if (this.useSupabase) {
+      try {
+        await supabaseService.deleteUser(userId);
+        return;
+      } catch (error) {
+        console.error('Supabase deleteUser failed, falling back to localStorage:', error);
+      }
+    }
+    
     if (this.useApi) {
       try {
         await apiService.deleteUser(userId);
@@ -131,6 +211,14 @@ class DataService {
 
   // Invoice management methods
   async getAllInvoices(): Promise<InvoiceData[]> {
+    if (this.useSupabase) {
+      try {
+        return await supabaseService.getAllInvoices();
+      } catch (error) {
+        console.error('Supabase getAllInvoices failed, falling back to localStorage:', error);
+      }
+    }
+    
     if (this.useApi) {
       try {
         return await apiService.getAllInvoices();
@@ -142,6 +230,15 @@ class DataService {
   }
 
   async getInvoiceById(id: string): Promise<InvoiceData | null> {
+    if (this.useSupabase) {
+      try {
+        const invoices = await supabaseService.getAllInvoices();
+        return invoices.find(inv => inv.id === id) || null;
+      } catch (error) {
+        console.error('Supabase getInvoiceById failed, falling back to localStorage:', error);
+      }
+    }
+    
     if (this.useApi) {
       try {
         return await apiService.getInvoiceById(id);
@@ -153,6 +250,17 @@ class DataService {
   }
 
   async saveInvoice(invoice: InvoiceData): Promise<InvoiceData> {
+    if (this.useSupabase) {
+      try {
+        const savedInvoice = await supabaseService.saveInvoice(invoice);
+        // Also save to localStorage for offline access
+        localStorage.saveInvoice(savedInvoice);
+        return savedInvoice;
+      } catch (error) {
+        console.error('Supabase saveInvoice failed, falling back to localStorage:', error);
+      }
+    }
+    
     if (this.useApi) {
       try {
         const savedInvoice = await apiService.saveInvoice(invoice);
@@ -169,6 +277,14 @@ class DataService {
   }
 
   async deleteInvoice(id: string): Promise<void> {
+    if (this.useSupabase) {
+      try {
+        await supabaseService.deleteInvoice(id);
+      } catch (error) {
+        console.error('Supabase deleteInvoice failed, falling back to localStorage:', error);
+      }
+    }
+    
     if (this.useApi) {
       try {
         await apiService.deleteInvoice(id);
@@ -180,6 +296,14 @@ class DataService {
   }
 
   async updateInvoiceStatus(id: string, status: InvoiceData['status']): Promise<void> {
+    if (this.useSupabase) {
+      try {
+        await supabaseService.updateInvoiceStatus(id, status);
+      } catch (error) {
+        console.error('Supabase updateInvoiceStatus failed, falling back to localStorage:', error);
+      }
+    }
+    
     if (this.useApi) {
       try {
         await apiService.updateInvoiceStatus(id, status);
@@ -191,6 +315,14 @@ class DataService {
   }
 
   async searchInvoices(query: string): Promise<InvoiceData[]> {
+    if (this.useSupabase) {
+      try {
+        return await supabaseService.searchInvoices(query);
+      } catch (error) {
+        console.error('Supabase searchInvoices failed, falling back to localStorage:', error);
+      }
+    }
+    
     if (this.useApi) {
       try {
         return await apiService.searchInvoices(query);
@@ -203,20 +335,28 @@ class DataService {
 
   // Utility methods
   isUsingApi(): boolean {
-    return this.useApi;
+    return this.useApi || this.useSupabase;
+  }
+  
+  isUsingSupabase(): boolean {
+    return this.useSupabase;
   }
 
   async syncToApi(): Promise<void> {
-    if (!this.useApi) return;
+    if (!this.useApi && !this.useSupabase) return;
 
     try {
-      console.log('🔄 Syncing localStorage data to API...');
+      console.log('🔄 Syncing localStorage data to database...');
       
       // Sync invoices
       const localInvoices = localStorage.getAllInvoices();
       for (const invoice of localInvoices) {
         try {
-          await apiService.saveInvoice(invoice);
+          if (this.useSupabase) {
+            await supabaseService.saveInvoice(invoice);
+          } else {
+            await apiService.saveInvoice(invoice);
+          }
         } catch (error) {
           console.error(`Failed to sync invoice ${invoice.id}:`, error);
         }
