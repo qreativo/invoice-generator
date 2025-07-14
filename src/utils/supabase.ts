@@ -145,18 +145,19 @@ export class SupabaseService {
       const user = userData[0];
       
       // For demo purposes, we'll do a simple password check
-      // Simple password check for demo - in production use proper bcrypt
       let isValidPassword = false;
       
       try {
         const bcrypt = await import('bcryptjs');
         isValidPassword = await bcrypt.compare(password, user.password_hash);
       } catch (error) {
-        // Fallback: direct comparison for demo passwords
-        console.log('Bcrypt failed, using direct comparison for demo');
-        if (user.username === 'lunaraadmin' && password === 'Lunara2025!') {
+        // Fallback: direct comparison for new demo passwords
+        console.log('Bcrypt failed, using direct comparison for demo users');
+        if (user.username === 'admin' && password === 'admin123') {
           isValidPassword = true;
-        } else if (user.username === 'demouser' && password === 'Demo2025!') {
+        } else if (user.username === 'demo' && password === 'demo123') {
+          isValidPassword = true;
+        } else if (user.username === 'lunara' && password === 'lunara2025') {
           isValidPassword = true;
         }
       }
