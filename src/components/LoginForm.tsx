@@ -8,12 +8,14 @@ interface LoginFormProps {
   language: 'en' | 'id';
   onLogin: (user: UserType) => void;
   onClose: () => void;
+  onShowRegister: () => void;
 }
 
 export const LoginForm: React.FC<LoginFormProps> = ({
   language,
   onLogin,
-  onClose
+  onClose,
+  onShowRegister
 }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -151,10 +153,23 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               </button>
             </form>
 
+            {/* Register Link */}
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600">
+                {t.dontHaveAccount || "Don't have an account?"}{' '}
+                <button
+                  onClick={onShowRegister}
+                  className="text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
+                >
+                  {t.signUp || 'Sign up'}
+                </button>
+              </p>
+            </div>
+
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="mt-6 w-full text-gray-600 hover:text-gray-800 transition-colors duration-200 text-sm"
+              className="mt-4 w-full text-gray-600 hover:text-gray-800 transition-colors duration-200 text-sm"
             >
               {t.cancel || 'Cancel'}
             </button>

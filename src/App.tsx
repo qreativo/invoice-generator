@@ -7,6 +7,7 @@ import { InvoiceForm } from './components/InvoiceForm';
 import { InvoicePreview } from './components/InvoicePreview';
 import { InvoiceList } from './components/InvoiceList';
 import { LoginForm } from './components/LoginForm';
+import { RegisterForm } from './components/RegisterForm';
 import { AdminPanel } from './components/AdminPanel';
 import { saveInvoiceData, loadInvoiceData, clearInvoiceData, saveInvoice } from './utils/storage';
 import { getCurrentUser, logout } from './utils/auth';
@@ -57,6 +58,7 @@ function App() {
   const [isEditing, setIsEditing] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
   const [showLogin, setShowLogin] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
   const [showNotification, setShowNotification] = useState<{
     message: string;
     type: 'success' | 'error';
@@ -115,7 +117,15 @@ function App() {
   const handleLogin = (user: User) => {
     setCurrentUser(user);
     setShowLogin(false);
+    setShowRegister(false);
     showNotificationMessage(`Welcome back, ${user.username}!`, 'success');
+  };
+
+  const handleRegister = (user: User) => {
+    setCurrentUser(user);
+    setShowLogin(false);
+    setShowRegister(false);
+    showNotificationMessage(`Welcome to Lunara, ${user.username}!`, 'success');
   };
 
   const handleLogout = () => {
@@ -169,7 +179,7 @@ function App() {
   };
 
   // Redirect to login if not authenticated
-  if (!currentUser && !showLogin) {
+  if (!currentUser && !showLogin && !showRegister) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
         <Header
@@ -211,12 +221,30 @@ function App() {
   }
 
   // Show login form
-  if (showLogin) {
+  if (showLogin && !showRegister) {
     return (
       <LoginForm
         language={invoiceData.language}
         onLogin={handleLogin}
         onClose={() => setShowLogin(false)}
+        onShowRegister={() => {
+          setShowLogin(false);
+          setShowRegister(true);
+        }}
+      />
+    );
+  }
+
+  // Show register form
+  if (showRegister) {
+    return (
+      <RegisterForm
+        language={invoiceData.language}
+        onRegister={handleRegister}
+        onBackToLogin={() => {
+          setShowRegister(false);
+          setShowLogin(true);
+        }}
       />
     );
   }

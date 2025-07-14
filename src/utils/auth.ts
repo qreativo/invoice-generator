@@ -127,11 +127,15 @@ export const createUser = (userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'
     ...userData,
     id: `user-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    lastLogin: new Date().toISOString() // Set initial login time
   };
 
   const updatedUsers = [...users, newUser];
   saveUsers(updatedUsers);
+  
+  // Auto-login the new user
+  localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(newUser));
   
   return newUser;
 };
