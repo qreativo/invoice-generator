@@ -20,17 +20,19 @@ export class SupabaseService {
   async login(username: string, password: string): Promise<User | null> {
     try {
       // First get user by username
-      const { data: userData, error: userError } = await supabase
+      const { data: userDataArray, error: userError } = await supabase
         .from('users')
         .select('*')
         .eq('username', username)
         .eq('is_active', true)
-        .single();
+        .limit(1);
 
-      if (userError || !userData) {
+      if (userError || !userDataArray || userDataArray.length === 0) {
         console.error('User not found:', userError);
         return null;
       }
+
+      const userData = userDataArray[0];
 
       // In a real app, you'd verify the password hash here
       // For demo purposes, we'll accept the password as-is
@@ -73,13 +75,13 @@ export class SupabaseService {
   }): Promise<User> {
     try {
       // Check if user exists
-      const { data: existingUser } = await supabase
+      const { data: existingUsers } = await supabase
         .from('users')
         .select('id')
         .or(`username.eq.${userData.username},email.eq.${userData.email}`)
-        .single();
+        .limit(1);
 
-      if (existingUser) {
+      if (existingUsers && existingUsers.length > 0) {
         throw new Error('Username or email already exists');
       }
 
@@ -368,14 +370,14 @@ export class SupabaseService {
       };
 
       // Check if invoice exists
-      const { data: existingInvoice } = await supabase
+      const { data: existingInvoiceArray } = await supabase
         .from('invoices')
         .select('id')
         .eq('id', invoice.id)
-        .single();
+        .limit(1);
 
       let savedInvoice;
-      if (existingInvoice) {
+      if (existingInvoiceArray && existingInvoiceArray.length > 0) {
         // Update existing invoice
         const { data, error } = await supabase
           .from('invoices')
