@@ -5,7 +5,7 @@ import { InvoiceData } from '../types/invoice';
 
 // Import existing localStorage functions as fallback
 import * as localAuth from './auth';
-import * as localStorage from './storage';
+import * as invoiceStorage from './storage';
 
 // Hybrid data service that uses API when available, localStorage as fallback
 class DataService {
@@ -32,7 +32,7 @@ class DataService {
       try {
         const user = await supabaseService.login(username, password);
         if (user) {
-          localStorage.setItem('lunara-current-user', JSON.stringify(user));
+          window.localStorage.setItem('lunara-current-user', JSON.stringify(user));
         }
         return user;
       } catch (error) {
@@ -44,8 +44,8 @@ class DataService {
     if (this.useApi) {
       try {
         const response = await apiService.login(username, password);
-        localStorage.setItem('auth_token', response.token);
-        localStorage.setItem('lunara-current-user', JSON.stringify(response.user));
+        window.localStorage.setItem('auth_token', response.token);
+        window.localStorage.setItem('lunara-current-user', JSON.stringify(response.user));
         return response.user;
       } catch (error) {
         console.error('API login failed, falling back to localStorage:', error);
@@ -64,7 +64,7 @@ class DataService {
     if (this.useSupabase) {
       try {
         const user = await supabaseService.register(userData);
-        localStorage.setItem('lunara-current-user', JSON.stringify(user));
+        window.localStorage.setItem('lunara-current-user', JSON.stringify(user));
         return user;
       } catch (error) {
         console.error('Supabase register failed, falling back to localStorage:', error);
@@ -81,8 +81,8 @@ class DataService {
     if (this.useApi) {
       try {
         const response = await apiService.register(userData);
-        localStorage.setItem('auth_token', response.token);
-        localStorage.setItem('lunara-current-user', JSON.stringify(response.user));
+        window.localStorage.setItem('auth_token', response.token);
+        window.localStorage.setItem('lunara-current-user', JSON.stringify(response.user));
         return response.user;
       } catch (error) {
         console.error('API register failed, falling back to localStorage:', error);
@@ -110,7 +110,7 @@ class DataService {
   async logout(): Promise<void> {
     if (this.useSupabase) {
       // Just clear local storage for Supabase
-      localStorage.removeItem('lunara-current-user');
+      window.localStorage.removeItem('lunara-current-user');
       return;
     }
     
@@ -122,7 +122,7 @@ class DataService {
       }
     }
     
-    localStorage.removeItem('auth_token');
+    window.localStorage.removeItem('auth_token');
     localAuth.logout();
   }
 
@@ -226,7 +226,7 @@ class DataService {
         console.error('API getAllInvoices failed, falling back to localStorage:', error);
       }
     }
-    return localStorage.getAllInvoices();
+    return invoiceStorage.getAllInvoices();
   }
 
   async getInvoiceById(id: string): Promise<InvoiceData | null> {
@@ -246,7 +246,7 @@ class DataService {
         console.error('API getInvoiceById failed, falling back to localStorage:', error);
       }
     }
-    return localStorage.getInvoiceById(id);
+    return invoiceStorage.getInvoiceById(id);
   }
 
   async saveInvoice(invoice: InvoiceData): Promise<InvoiceData> {
@@ -254,7 +254,7 @@ class DataService {
       try {
         const savedInvoice = await supabaseService.saveInvoice(invoice);
         // Also save to localStorage for offline access
-        localStorage.saveInvoice(savedInvoice);
+        invoiceStorage.saveInvoice(savedInvoice);
         return savedInvoice;
       } catch (error) {
         console.error('Supabase saveInvoice failed, falling back to localStorage:', error);
@@ -265,14 +265,14 @@ class DataService {
       try {
         const savedInvoice = await apiService.saveInvoice(invoice);
         // Also save to localStorage for offline access
-        localStorage.saveInvoice(savedInvoice);
+        invoiceStorage.saveInvoice(savedInvoice);
         return savedInvoice;
       } catch (error) {
         console.error('API saveInvoice failed, falling back to localStorage:', error);
       }
     }
     
-    localStorage.saveInvoice(invoice);
+    invoiceStorage.saveInvoice(invoice);
     return invoice;
   }
 
@@ -292,7 +292,7 @@ class DataService {
         console.error('API deleteInvoice failed, falling back to localStorage:', error);
       }
     }
-    localStorage.deleteInvoice(id);
+    invoiceStorage.deleteInvoice(id);
   }
 
   async updateInvoiceStatus(id: string, status: InvoiceData['status']): Promise<void> {
@@ -311,7 +311,7 @@ class DataService {
         console.error('API updateInvoiceStatus failed, falling back to localStorage:', error);
       }
     }
-    localStorage.updateInvoiceStatus(id, status);
+    invoiceStorage.updateInvoiceStatus(id, status);
   }
 
   async searchInvoices(query: string): Promise<InvoiceData[]> {
@@ -330,7 +330,7 @@ class DataService {
         console.error('API searchInvoices failed, falling back to localStorage:', error);
       }
     }
-    return localStorage.searchInvoices(query);
+    return invoiceStorage.searchInvoices(query);
   }
 
   // Utility methods
@@ -349,7 +349,7 @@ class DataService {
       console.log('🔄 Syncing localStorage data to database...');
       
       // Sync invoices
-      const localInvoices = localStorage.getAllInvoices();
+      const localInvoices = invoiceStorage.getAllInvoices();
       for (const invoice of localInvoices) {
         try {
           if (this.useSupabase) {
