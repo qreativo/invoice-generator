@@ -19,50 +19,46 @@ export class SupabaseService {
   // Authentication
   async login(username: string, password: string): Promise<User | null> {
     try {
-      // First get user by username
-      const { data: userDataArray, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('username', username)
-        .eq('is_active', true)
-        .limit(1);
+      const { data: userData, error } = await this.supabase
+        .rpc('authenticate_user', {
+          p_username: username,
+          p_password: password
+        });
 
-      if (userError || !userDataArray || userDataArray.length === 0) {
-        console.error('User not found:', userError);
+      if (error) {
+        console.error('Supabase login error:', error);
         return null;
       }
 
-      const userData = userDataArray[0];
+      if (!userData || userData.length === 0) {
+        return null;
+      }
 
-      // In a real app, you'd verify the password hash here
-      // For demo purposes, we'll accept the password as-is
-      if (password === 'Lunara2025!' || password === 'Demo2025!') {
-        // Update last login
-        await supabase
-          .from('users')
-          .update({ last_login: new Date().toISOString() })
-          .eq('id', userData.id);
-
+      const user = userData[0];
+      if (user) {
         return {
-          id: userData.id,
-          username: userData.username,
-          email: userData.email,
-          password: '', // Don't return password
-          role: userData.role as 'admin' | 'member',
-          isActive: userData.is_active,
-          createdAt: userData.created_at,
-          updatedAt: userData.updated_at,
-          lastLogin: new Date().toISOString(),
-          phone: userData.phone,
-          fullName: userData.full_name,
-          avatar: userData.avatar,
-          preferences: userData.preferences
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role as 'admin' | 'member',
+          isActive: user.is_active,
+          createdAt: user.created_at,
+          updatedAt: user.updated_at,
+          lastLogin: user.last_login,
+          fullName: user.full_name,
+          avatar: user.avatar,
+          preferences: user.preferences || {
+            theme: 'modern',
+            currency: 'USD',
+            language: 'en',
+            notifications: { email: true, whatsapp: true }
+          }
         };
       }
 
       return null;
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Supabase login failed:', error);
       return null;
     }
   }
