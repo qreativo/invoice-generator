@@ -7,23 +7,45 @@ const CURRENT_USER_KEY = 'lunara-current-user';
 const defaultUsers: User[] = [
   {
     id: 'admin-001',
-    username: 'admin',
-    email: 'admin@lunara.com',
-    password: 'admin123',
+    username: 'lunaraadmin',
+    email: 'admin@digilunar.com',
+    password: 'Lunara2025!',
     role: 'admin',
     isActive: true,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    fullName: 'Lunara Administrator',
+    phone: '+6281234567890',
+    preferences: {
+      language: 'en',
+      theme: 'modern',
+      currency: 'USD',
+      notifications: {
+        email: true,
+        whatsapp: true
+      }
+    }
   },
   {
     id: 'user-001',
-    username: 'user',
-    email: 'user@lunara.com',
-    password: 'user123',
+    username: 'demouser',
+    email: 'demo@digilunar.com',
+    password: 'Demo2025!',
     role: 'member',
     isActive: true,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    fullName: 'Demo User',
+    phone: '+6281234567891',
+    preferences: {
+      language: 'en',
+      theme: 'modern',
+      currency: 'IDR',
+      notifications: {
+        email: true,
+        whatsapp: false
+      }
+    }
   }
 ];
 
