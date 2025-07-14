@@ -10,14 +10,19 @@ const supabaseServiceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Service role client for admin operations
-export const supabaseAdmin = supabaseServiceKey 
-  ? createClient(supabaseUrl, supabaseServiceKey)
-  : supabase;
+export const supabaseAdmin = supabaseServiceKey && supabaseServiceKey.trim() !== ''
+  ? createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
+  : null;
 
 // Database service for Supabase integration
 export class SupabaseService {
   private supabaseClient: typeof supabase;
-  private supabaseAdminClient: typeof supabaseAdmin;
+  private supabaseAdminClient: typeof supabaseAdmin | null;
 
   constructor() {
     this.supabaseClient = supabase;
@@ -193,6 +198,11 @@ export class SupabaseService {
 
   async createUser(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'lastLogin'>): Promise<User> {
     try {
+      // Check if admin client is available
+      if (!this.supabaseAdminClient) {
+        throw new Error('Admin client not configured. Please set VITE_SUPABASE_SERVICE_ROLE_KEY in your environment variables.');
+      }
+
       // Use admin client for user creation to bypass RLS
       const { data, error } = await this.supabaseAdminClient
         .from('users')
@@ -233,6 +243,11 @@ export class SupabaseService {
 
   async updateUser(user: User): Promise<User> {
     try {
+      // Check if admin client is available
+      if (!this.supabaseAdminClient) {
+        throw new Error('Admin client not configured. Please set VITE_SUPABASE_SERVICE_ROLE_KEY in your environment variables.');
+      }
+
       const updateData: any = {
         username: user.username,
         email: user.email,
@@ -284,6 +299,11 @@ export class SupabaseService {
 
   async deleteUser(userId: string): Promise<void> {
     try {
+      // Check if admin client is available
+      if (!this.supabaseAdminClient) {
+        throw new Error('Admin client not configured. Please set VITE_SUPABASE_SERVICE_ROLE_KEY in your environment variables.');
+      }
+
       // Use admin client for user deletion to bypass RLS
       const { error } = await this.supabaseAdminClient
         .from('users')
