@@ -1,7 +1,5 @@
 import { apiService, isApiAvailable } from './api';
 import { supabaseService } from './supabase';
-import { mysqlService } from './mysql';
-import { testMySQLConnection } from './testMysqlConnection';
 import { User } from '../types/user';
 import { InvoiceData } from '../types/invoice';
 
@@ -13,26 +11,9 @@ import * as invoiceStorage from './storage';
 class DataService {
   private useApi: boolean = false;
   private useSupabase: boolean = false;
-  private useMySQL: boolean = false;
 
   async initialize(): Promise<void> {
-    // Check MySQL connection first
-    try {
-      console.log('🔄 Initializing Data Service...');
-      
-      // Test MySQL connection with detailed logging
-      await testMySQLConnection();
-      
-      const mysqlConnected = await mysqlService.testConnection();
-      if (mysqlConnected) {
-        await mysqlService.initializeTables();
-        this.useMySQL = true;
-        console.log('✅ Data Service initialized: MySQL Mode');
-        return;
-      }
-    } catch (error) {
-      console.log('⚠️ MySQL connection failed, trying Supabase...', error.message);
-    }
+    console.log('🔄 Initializing Data Service...');
 
     // Check if Supabase is configured
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -40,29 +21,15 @@ class DataService {
     
     if (supabaseUrl && supabaseKey) {
       this.useSupabase = true;
-      console.log('🔄 Data Service initialized: Supabase Mode');
+      console.log('✅ Data Service initialized: Supabase Mode');
     } else {
       this.useApi = await isApiAvailable();
-      console.log(`🔄 Data Service initialized: ${this.useApi ? 'API Mode' : 'Local Storage Mode'}`);
+      console.log(`✅ Data Service initialized: ${this.useApi ? 'API Mode' : 'Local Storage Mode'}`);
     }
   }
 
   // Authentication methods
   async login(username: string, password: string): Promise<User | null> {
-    if (this.useMySQL) {
-      try {
-        console.log('🔄 Using MySQL login for:', username);
-        const user = await mysqlService.login(username, password);
-        if (user) {
-          console.log('✅ MySQL login successful:', user.username);
-          window.localStorage.setItem('lunara-current-user', JSON.stringify(user));
-          return user;
-        }
-      } catch (error) {
-        console.error('❌ MySQL login error:', error);
-      }
-    }
-
     if (this.useSupabase) {
       try {
         console.log('🔄 Using Supabase login for:', username);
@@ -102,23 +69,6 @@ class DataService {
     password: string;
     turnstileToken: string;
   }): Promise<User> {
-    if (this.useMySQL) {
-      try {
-        const user = await mysqlService.register(userData);
-        window.localStorage.setItem('lunara-current-user', JSON.stringify(user));
-        return user;
-      } catch (error) {
-        console.error('MySQL register failed, falling back to localStorage:', error);
-        return localAuth.createUser({
-          username: userData.username,
-          email: userData.email,
-          password: userData.password,
-          role: 'member',
-          isActive: true
-        });
-      }
-    }
-
     if (this.useSupabase) {
       try {
         const user = await supabaseService.register(userData);
@@ -166,12 +116,6 @@ class DataService {
   }
 
   async logout(): Promise<void> {
-    if (this.useMySQL) {
-      // Just clear local storage for MySQL
-      window.localStorage.removeItem('lunara-current-user');
-      return;
-    }
-
     if (this.useSupabase) {
       // Just clear local storage for Supabase
       window.localStorage.removeItem('lunara-current-user');
@@ -196,14 +140,6 @@ class DataService {
 
   // User management methods
   async getAllUsers(): Promise<User[]> {
-    if (this.useMySQL) {
-      try {
-        return await mysqlService.getAllUsers();
-      } catch (error) {
-        console.error('MySQL getAllUsers failed, falling back to localStorage:', error);
-      }
-    }
-
     if (this.useSupabase) {
       try {
         return await supabaseService.getAllUsers();
@@ -223,14 +159,6 @@ class DataService {
   }
 
   async createUser(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'lastLogin'>): Promise<User> {
-    if (this.useMySQL) {
-      try {
-        return await mysqlService.createUser(userData);
-      } catch (error) {
-        console.error('MySQL createUser failed, falling back to localStorage:', error);
-      }
-    }
-
     if (this.useSupabase) {
       try {
         return await supabaseService.createUser(userData);
@@ -250,14 +178,6 @@ class DataService {
   }
 
   async updateUser(user: User): Promise<User> {
-    if (this.useMySQL) {
-      try {
-        return await mysqlService.updateUser(user);
-      } catch (error) {
-        console.error('MySQL updateUser failed, falling back to localStorage:', error);
-      }
-    }
-
     if (this.useSupabase) {
       try {
         return await supabaseService.updateUser(user);
@@ -277,15 +197,6 @@ class DataService {
   }
 
   async deleteUser(userId: string): Promise<void> {
-    if (this.useMySQL) {
-      try {
-        await mysqlService.deleteUser(userId);
-        return;
-      } catch (error) {
-        console.error('MySQL deleteUser failed, falling back to localStorage:', error);
-      }
-    }
-
     if (this.useSupabase) {
       try {
         await supabaseService.deleteUser(userId);
@@ -308,14 +219,6 @@ class DataService {
 
   // Invoice management methods
   async getAllInvoices(): Promise<InvoiceData[]> {
-    if (this.useMySQL) {
-      try {
-        return await mysqlService.getAllInvoices();
-      } catch (error) {
-        console.error('MySQL getAllInvoices failed, falling back to localStorage:', error);
-      }
-    }
-
     if (this.useSupabase) {
       try {
         return await supabaseService.getAllInvoices();
@@ -335,15 +238,6 @@ class DataService {
   }
 
   async getInvoiceById(id: string): Promise<InvoiceData | null> {
-    if (this.useMySQL) {
-      try {
-        const invoices = await mysqlService.getAllInvoices();
-        return invoices.find(inv => inv.id === id) || null;
-      } catch (error) {
-        console.error('MySQL getInvoiceById failed, falling back to localStorage:', error);
-      }
-    }
-
     if (this.useSupabase) {
       try {
         const invoices = await supabaseService.getAllInvoices();
@@ -364,17 +258,6 @@ class DataService {
   }
 
   async saveInvoice(invoice: InvoiceData): Promise<InvoiceData> {
-    if (this.useMySQL) {
-      try {
-        const savedInvoice = await mysqlService.saveInvoice(invoice);
-        // Also save to localStorage for offline access
-        invoiceStorage.saveInvoice(savedInvoice);
-        return savedInvoice;
-      } catch (error) {
-        console.error('MySQL saveInvoice failed, falling back to localStorage:', error);
-      }
-    }
-
     if (this.useSupabase) {
       try {
         const savedInvoice = await supabaseService.saveInvoice(invoice);
@@ -402,14 +285,6 @@ class DataService {
   }
 
   async deleteInvoice(id: string): Promise<void> {
-    if (this.useMySQL) {
-      try {
-        await mysqlService.deleteInvoice(id);
-      } catch (error) {
-        console.error('MySQL deleteInvoice failed, falling back to localStorage:', error);
-      }
-    }
-
     if (this.useSupabase) {
       try {
         await supabaseService.deleteInvoice(id);
@@ -429,14 +304,6 @@ class DataService {
   }
 
   async updateInvoiceStatus(id: string, status: InvoiceData['status']): Promise<void> {
-    if (this.useMySQL) {
-      try {
-        await mysqlService.updateInvoiceStatus(id, status);
-      } catch (error) {
-        console.error('MySQL updateInvoiceStatus failed, falling back to localStorage:', error);
-      }
-    }
-
     if (this.useSupabase) {
       try {
         await supabaseService.updateInvoiceStatus(id, status);
@@ -456,14 +323,6 @@ class DataService {
   }
 
   async searchInvoices(query: string): Promise<InvoiceData[]> {
-    if (this.useMySQL) {
-      try {
-        return await mysqlService.searchInvoices(query);
-      } catch (error) {
-        console.error('MySQL searchInvoices failed, falling back to localStorage:', error);
-      }
-    }
-
     if (this.useSupabase) {
       try {
         return await supabaseService.searchInvoices(query);
@@ -484,30 +343,24 @@ class DataService {
 
   // Utility methods
   isUsingApi(): boolean {
-    return this.useApi || this.useSupabase || this.useMySQL;
+    return this.useApi || this.useSupabase;
   }
   
   isUsingSupabase(): boolean {
     return this.useSupabase;
   }
 
-  isUsingMySQL(): boolean {
-    return this.useMySQL;
-  }
-
   async syncToApi(): Promise<void> {
-    if (!this.useApi && !this.useSupabase && !this.useMySQL) return;
+    if (!this.useApi && !this.useSupabase) return;
 
     try {
-      console.log('🔄 Syncing localStorage data to database...');
+      console.log('🔄 Syncing localStorage data to API/Supabase...');
       
       // Sync invoices
       const localInvoices = invoiceStorage.getAllInvoices();
       for (const invoice of localInvoices) {
         try {
-          if (this.useMySQL) {
-            await mysqlService.saveInvoice(invoice);
-          } else if (this.useSupabase) {
+          if (this.useSupabase) {
             await supabaseService.saveInvoice(invoice);
           } else {
             await apiService.saveInvoice(invoice);
