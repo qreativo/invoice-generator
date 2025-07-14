@@ -227,6 +227,14 @@ export const testWhatsAppConnection = async (): Promise<boolean> => {
     throw new Error('WhatsApp settings incomplete');
   }
 
+  // Skip actual API call in development/non-production environments
+  if (import.meta.env.MODE !== 'production') {
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log('WhatsApp connection test (simulated): Success');
+    return true;
+  }
+
   try {
     const response = await fetch('https://sender.digilunar.com/send-message', {
       method: 'POST',
