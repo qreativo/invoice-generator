@@ -34,7 +34,7 @@ export class SupabaseService {
 
       // In a real app, you'd verify the password hash here
       // For demo purposes, we'll accept the password as-is
-      if (password === 'admin123' || password === 'user123') {
+      if (password === 'Lunara2025!' || password === 'Demo2025!') {
         // Update last login
         await supabase
           .from('users')
@@ -50,7 +50,11 @@ export class SupabaseService {
           isActive: userData.is_active,
           createdAt: userData.created_at,
           updatedAt: userData.updated_at,
-          lastLogin: new Date().toISOString()
+          lastLogin: new Date().toISOString(),
+          phone: userData.phone,
+          fullName: userData.full_name,
+          avatar: userData.avatar,
+          preferences: userData.preferences
         };
       }
 
@@ -106,7 +110,11 @@ export class SupabaseService {
         isActive: newUser.is_active,
         createdAt: newUser.created_at,
         updatedAt: newUser.updated_at,
-        lastLogin: newUser.last_login
+        lastLogin: newUser.last_login,
+        phone: newUser.phone,
+        fullName: newUser.full_name,
+        avatar: newUser.avatar,
+        preferences: newUser.preferences
       };
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -135,7 +143,11 @@ export class SupabaseService {
         isActive: user.is_active,
         createdAt: user.created_at,
         updatedAt: user.updated_at,
-        lastLogin: user.last_login
+        lastLogin: user.last_login,
+        phone: user.phone,
+        fullName: user.full_name,
+        avatar: user.avatar,
+        preferences: user.preferences
       }));
     } catch (error: any) {
       console.error('Get users error:', error);
@@ -171,7 +183,7 @@ export class SupabaseService {
         isActive: data.is_active,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
-        lastLogin: data.last_login,
+        lastLogin: data.last_login || null,
         phone: data.phone,
         fullName: data.full_name,
         avatar: data.avatar,
@@ -189,7 +201,11 @@ export class SupabaseService {
         username: user.username,
         email: user.email,
         role: user.role,
-        is_active: user.isActive
+        is_active: user.isActive,
+        phone: user.phone,
+        full_name: user.fullName,
+        avatar: user.avatar,
+        preferences: user.preferences
       };
 
       // Only update password if provided
@@ -218,7 +234,11 @@ export class SupabaseService {
         isActive: data.is_active,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
-        lastLogin: data.last_login
+        lastLogin: data.last_login,
+        phone: data.phone,
+        fullName: data.full_name,
+        avatar: data.avatar,
+        preferences: data.preferences
       };
     } catch (error: any) {
       console.error('Update user error:', error);
