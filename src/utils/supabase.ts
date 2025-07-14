@@ -27,14 +27,16 @@ export class SupabaseService {
   // Authentication
   async login(username: string, password: string): Promise<User | null> {
     try {
-      const { data: userData, error } = await this.supabaseClient
-        .rpc('authenticate_user', {
-          p_username: username,
-          p_password: password
-        });
+      // Query user by username
+      const { data: userData, error: userError } = await this.supabaseClient
+        .from('users')
+        .select('*')
+        .eq('username', username)
+        .eq('is_active', true)
+        .limit(1);
 
-      if (error) {
-        console.error('Supabase login error:', error);
+      if (userError) {
+        console.error('Supabase user query error:', userError);
         return null;
       }
 
@@ -134,10 +136,21 @@ export class SupabaseService {
       const { data, error } = await this.supabaseClient
         .from('users')
         .select('*')
-        .order('created_at', { ascending: false });
+      if (!userData || userData.length === 0) {
 
       if (error) {
         throw new Error(error.message);
+      }
+      const user = userData[0];
+      
+      // For demo purposes, we'll do a simple password check
+      // In production, you should use proper password hashing
+      const bcrypt = await import('bcryptjs');
+      const isValidPassword = await bcrypt.compare(password, user.password_hash);
+      
+      if (!isValidPassword) {
+        console.log('Invalid password for user:', username);
+        return null;
       }
 
       return data.map(user => ({
