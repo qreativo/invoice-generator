@@ -93,3 +93,24 @@ export const searchInvoices = (query: string): InvoiceData[] => {
     return [];
   }
 };
+
+export const updateInvoiceStatus = (invoiceId: string, newStatus: InvoiceData['status']): void => {
+  try {
+    const invoices = getAllInvoices();
+    const updatedInvoices = invoices.map(invoice => {
+      if (invoice.id === invoiceId) {
+        return {
+          ...invoice,
+          status: newStatus,
+          statusUpdatedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return invoice;
+    });
+    
+    localStorage.setItem(INVOICES_LIST_KEY, JSON.stringify(updatedInvoices));
+  } catch (error) {
+    console.error('Error updating invoice status:', error);
+  }
+};

@@ -142,11 +142,11 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
     switch (status) {
       case 'draft':
         return <Clock className="h-4 w-4 text-gray-500" />;
-      case 'sent':
+      case 'pending':
         return <AlertCircle className="h-4 w-4 text-blue-500" />;
       case 'paid':
         return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'overdue':
+      case 'cancelled':
         return <XCircle className="h-4 w-4 text-red-500" />;
       default:
         return <FileText className="h-4 w-4 text-gray-500" />;
@@ -157,11 +157,11 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
     switch (status) {
       case 'draft':
         return 'bg-gray-100 text-gray-800';
-      case 'sent':
+      case 'pending':
         return 'bg-blue-100 text-blue-800';
       case 'paid':
         return 'bg-green-100 text-green-800';
-      case 'overdue':
+      case 'cancelled':
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -277,9 +277,9 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
           >
             <option value="all">{t.allStatus || 'All Status'}</option>
             <option value="draft">{t.draft || 'Draft'}</option>
-            <option value="sent">{t.sent || 'Sent'}</option>
+            <option value="pending">{t.pending || 'Pending'}</option>
             <option value="paid">{t.paid || 'Paid'}</option>
-            <option value="overdue">{t.overdue || 'Overdue'}</option>
+            <option value="cancelled">{t.cancelled || 'Cancelled'}</option>
           </select>
 
           <select

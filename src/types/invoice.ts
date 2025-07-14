@@ -11,7 +11,8 @@ export interface InvoiceData {
   invoiceNumber: string;
   createdAt: string;
   updatedAt: string;
-  status: 'draft' | 'sent' | 'paid' | 'overdue';
+  status: 'draft' | 'pending' | 'paid' | 'cancelled';
+  statusUpdatedAt?: string;
   date: string;
   dueDate: string;
   

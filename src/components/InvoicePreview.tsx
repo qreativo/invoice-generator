@@ -1,4 +1,5 @@
 import React from 'react';
+import { ChevronDown, Clock } from 'lucide-react';
 import { InvoiceData } from '../types/invoice';
 import { getTheme } from '../utils/themes';
 import { formatCurrency, formatDate } from '../utils/helpers';
@@ -7,11 +8,48 @@ import { translations } from '../utils/translations';
 interface InvoicePreviewProps {
   data: InvoiceData;
   language: 'en' | 'id';
+  onStatusChange?: (status: InvoiceData['status']) => void;
+  showStatusDropdown?: boolean;
 }
 
-export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data, language }) => {
+export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ 
+  data, 
+  language, 
+  onStatusChange,
+  showStatusDropdown = false 
+}) => {
   const theme = getTheme(data.theme);
   const t = translations[language];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'draft':
+        return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'pending':
+        return 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'paid':
+        return 'bg-green-100 text-green-800 border-green-300';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800 border-red-300';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'draft':
+        return '📝';
+      case 'pending':
+        return '⏳';
+      case 'paid':
+        return '✅';
+      case 'cancelled':
+        return '❌';
+      default:
+        return '📄';
+    }
+  };
 
   const themeStyles = {
     '--primary-color': theme.primaryColor,
@@ -178,6 +216,48 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data, language }
         className="invoice-print-container" 
         style={themeStyles}
       >
+      {/* Status Dropdown - Only show on screen, not in print */}
+      {showStatusDropdown && onStatusChange && (
+        <div className="mb-6 print:hidden">
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-gray-700">{t.invoiceStatus}:</span>
+                  <div className="relative">
+                    <select
+                      value={data.status}
+                      onChange={(e) => onStatusChange(e.target.value as InvoiceData['status'])}
+                      className={`appearance-none border rounded-lg px-4 py-2 pr-8 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${getStatusColor(data.status)}`}
+                    >
+                      <option value="draft">📝 {t.draft}</option>
+                      <option value="pending">⏳ {t.pending}</option>
+                      <option value="paid">✅ {t.paid}</option>
+                      <option value="cancelled">❌ {t.cancelled}</option>
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 pointer-events-none" />
+                  </div>
+                </div>
+                
+                {/* Current Status Badge */}
+                <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(data.status)}`}>
+                  <span>{getStatusIcon(data.status)}</span>
+                  <span className="capitalize">{data.status}</span>
+                </div>
+              </div>
+              
+              {/* Last Status Update */}
+              {data.statusUpdatedAt && (
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <Clock className="h-4 w-4" />
+                  <span>{t.lastStatusUpdate}: {new Date(data.statusUpdatedAt).toLocaleString()}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex justify-between items-start print-header-spacing">
         <div className="flex items-center space-x-4">

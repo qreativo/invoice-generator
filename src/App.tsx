@@ -9,7 +9,7 @@ import { InvoiceList } from './components/InvoiceList';
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
 import { AdminPanel } from './components/AdminPanel';
-import { saveInvoiceData, loadInvoiceData, clearInvoiceData, saveInvoice } from './utils/storage';
+import { saveInvoiceData, loadInvoiceData, clearInvoiceData, saveInvoice, updateInvoiceStatus } from './utils/storage';
 import { getCurrentUser, logout } from './utils/auth';
 import { translations } from './utils/translations';
 import { generateInvoiceNumber } from './utils/helpers';
@@ -97,6 +97,9 @@ function App() {
     setInvoiceData(updatedData);
     saveInvoiceData(updatedData);
     saveInvoice(updatedData);
+    
+    // Auto-redirect to preview after save
+    setCurrentView('preview');
     showNotificationMessage(t.invoiceSaved, 'success');
   };
 
@@ -176,6 +179,22 @@ function App() {
   const showNotificationMessage = (message: string, type: 'success' | 'error') => {
     setShowNotification({ message, type });
     setTimeout(() => setShowNotification(null), 3000);
+  };
+
+  const handleStatusChange = (newStatus: InvoiceData['status']) => {
+    const updatedData = { 
+      ...invoiceData, 
+      status: newStatus,
+      statusUpdatedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    setInvoiceData(updatedData);
+    saveInvoiceData(updatedData);
+    saveInvoice(updatedData);
+    updateInvoiceStatus(updatedData.id, newStatus);
+    
+    showNotificationMessage(t.statusUpdated || 'Status updated successfully', 'success');
   };
 
   // Redirect to login if not authenticated
@@ -385,6 +404,8 @@ function App() {
             <InvoicePreview
               data={invoiceData}
               language={invoiceData.language}
+              onStatusChange={handleStatusChange}
+              showStatusDropdown={true}
             />
           )}
         </div>
