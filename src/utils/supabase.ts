@@ -5,8 +5,14 @@ import { InvoiceData } from '../types/invoice';
 // Supabase configuration
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseServiceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Service role client for admin operations
+export const supabaseAdmin = supabaseServiceKey 
+  ? createClient(supabaseUrl, supabaseServiceKey)
+  : supabase;
 
 // Database service for Supabase integration
 export class SupabaseService {
@@ -139,7 +145,8 @@ export class SupabaseService {
 
   async createUser(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'lastLogin'>): Promise<User> {
     try {
-      const { data, error } = await supabase
+      // Use admin client for user creation to bypass RLS
+      const { data, error } = await supabaseAdmin
         .from('users')
         .insert({
           username: userData.username,
@@ -186,7 +193,8 @@ export class SupabaseService {
         updateData.password_hash = '$2b$10$rOzJqQZQZQZQZQZQZQZQZOzJqQZQZQZQZQZQZQZQZOzJqQZQZQZQZQ';
       }
 
-      const { data, error } = await supabase
+      // Use admin client for user updates to bypass RLS
+      const { data, error } = await supabaseAdmin
         .from('users')
         .update(updateData)
         .eq('id', user.id)
@@ -216,7 +224,8 @@ export class SupabaseService {
 
   async deleteUser(userId: string): Promise<void> {
     try {
-      const { error } = await supabase
+      // Use admin client for user deletion to bypass RLS
+      const { error } = await supabaseAdmin
         .from('users')
         .delete()
         .eq('id', userId);
