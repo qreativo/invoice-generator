@@ -1,6 +1,7 @@
 import { apiService, isApiAvailable } from './api';
 import { supabaseService } from './supabase';
 import { mysqlService } from './mysql';
+import { testMySQLConnection } from './testMysqlConnection';
 import { User } from '../types/user';
 import { InvoiceData } from '../types/invoice';
 
@@ -17,15 +18,20 @@ class DataService {
   async initialize(): Promise<void> {
     // Check MySQL connection first
     try {
+      console.log('🔄 Initializing Data Service...');
+      
+      // Test MySQL connection with detailed logging
+      await testMySQLConnection();
+      
       const mysqlConnected = await mysqlService.testConnection();
       if (mysqlConnected) {
         await mysqlService.initializeTables();
         this.useMySQL = true;
-        console.log('🔄 Data Service initialized: MySQL Mode');
+        console.log('✅ Data Service initialized: MySQL Mode');
         return;
       }
     } catch (error) {
-      console.log('⚠️ MySQL connection failed, trying Supabase...');
+      console.log('⚠️ MySQL connection failed, trying Supabase...', error.message);
     }
 
     // Check if Supabase is configured

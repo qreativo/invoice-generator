@@ -1,18 +1,20 @@
 import mysql from 'mysql2/promise';
 import { User } from '../types/user';
 import { InvoiceData } from '../types/invoice';
+import { testMySQLConnection } from './testMysqlConnection';
 
 // MySQL configuration
 const MYSQL_CONFIG = {
   host: '107.175.179.122',
   user: 'lunara',
   password: 'SbX7s8aMjf7xZX2e',
-  database: 'lunara',
+  database: 'lunara', 
   port: 3306,
   ssl: false,
   connectionLimit: 10,
   acquireTimeout: 60000,
-  timeout: 60000
+  timeout: 60000,
+  connectTimeout: 60000
 };
 
 // Create connection pool
@@ -35,13 +37,23 @@ export class MySQLService {
   // Test connection
   async testConnection(): Promise<boolean> {
     try {
+      console.log('🔄 Testing MySQL connection to lunara database...');
       const connection = await this.pool.getConnection();
       await connection.ping();
+      
+      // Test database access
+      const [result] = await connection.execute('SELECT DATABASE() as db, NOW() as time');
+      console.log('📊 Connected to database:', result);
+      
       connection.release();
       console.log('✅ MySQL connection successful');
       return true;
     } catch (error) {
-      console.error('❌ MySQL connection failed:', error);
+      console.error('❌ MySQL connection failed:', {
+        message: error.message,
+        code: error.code,
+        errno: error.errno
+      });
       return false;
     }
   }
@@ -49,9 +61,21 @@ export class MySQLService {
   // Initialize database tables
   async initializeTables(): Promise<void> {
     try {
+      console.log('🔄 Initializing MySQL tables...');
       const connection = await this.pool.getConnection();
 
+      // Check if tables already exist
+      const [existingTables] = await connection.execute('SHOW TABLES') as any;
+      console.log('📋 Existing tables:', existingTables.map((t: any) => Object.values(t)[0]));
+
+      if (existingTables.length > 0) {
+        console.log('✅ Tables already exist, skipping creation');
+        connection.release();
+        return;
+      }
+
       // Create users table
+      console.log('📝 Creating users table...');
       await connection.execute(`
         CREATE TABLE IF NOT EXISTS users (
           id VARCHAR(36) PRIMARY KEY,
@@ -78,6 +102,7 @@ export class MySQLService {
       `);
 
       // Create invoices table
+      console.log('📝 Creating invoices table...');
       await connection.execute(`
         CREATE TABLE IF NOT EXISTS invoices (
           id VARCHAR(36) PRIMARY KEY,
@@ -118,6 +143,7 @@ export class MySQLService {
       `);
 
       // Create invoice_items table
+      console.log('📝 Creating invoice_items table...');
       await connection.execute(`
         CREATE TABLE IF NOT EXISTS invoice_items (
           id VARCHAR(36) PRIMARY KEY,
@@ -135,6 +161,7 @@ export class MySQLService {
       `);
 
       // Create user_sessions table
+      console.log('📝 Creating user_sessions table...');
       await connection.execute(`
         CREATE TABLE IF NOT EXISTS user_sessions (
           id VARCHAR(36) PRIMARY KEY,
@@ -150,12 +177,17 @@ export class MySQLService {
       `);
 
       // Insert default users if not exist
+      console.log('👥 Creating default users...');
       await this.createDefaultUsers(connection);
 
       connection.release();
       console.log('✅ MySQL tables initialized successfully');
     } catch (error) {
-      console.error('❌ MySQL table initialization failed:', error);
+      console.error('❌ MySQL table initialization failed:', {
+        message: error.message,
+        code: error.code,
+        errno: error.errno
+      });
       throw error;
     }
   }
@@ -163,17 +195,21 @@ export class MySQLService {
   private async createDefaultUsers(connection: mysql.PoolConnection): Promise<void> {
     try {
       // Check if users exist
+      console.log('🔍 Checking existing users...');
       const [existingUsers] = await connection.execute(
         'SELECT COUNT(*) as count FROM users'
       ) as any;
 
+      console.log('👥 Current user count:', existingUsers[0].count);
+
       if (existingUsers[0].count === 0) {
+        console.log('➕ Inserting default users...');
         // Insert default users
         const defaultUsers = [
           {
             id: 'admin-001',
             username: 'admin',
-            email: 'admin@lunara.com',
+            email: 'admin@digilunar.com',
             password_hash: 'admin123', // In production, use bcrypt
             role: 'admin',
             full_name: 'Administrator',
@@ -188,7 +224,7 @@ export class MySQLService {
           {
             id: 'admin-002',
             username: 'lunara',
-            email: 'lunara@digilunar.com',
+            email: 'admin@lunara.com',
             password_hash: 'lunara2025', // In production, use bcrypt
             role: 'admin',
             full_name: 'Lunara Admin',
@@ -203,7 +239,7 @@ export class MySQLService {
           {
             id: 'user-001',
             username: 'demo',
-            email: 'demo@lunara.com',
+            email: 'demo@digilunar.com',
             password_hash: 'demo123', // In production, use bcrypt
             role: 'member',
             full_name: 'Demo User',
@@ -218,6 +254,7 @@ export class MySQLService {
         ];
 
         for (const user of defaultUsers) {
+          console.log(`➕ Creating user: ${user.username}`);
           await connection.execute(`
             INSERT INTO users (
               id, username, email, password_hash, role, is_active, 
@@ -230,6 +267,12 @@ export class MySQLService {
         }
 
         console.log('✅ Default users created in MySQL');
+        
+        // Verify users were created
+        const [newUserCount] = await connection.execute('SELECT COUNT(*) as count FROM users') as any;
+        console.log('👥 Total users after creation:', newUserCount[0].count);
+      } else {
+        console.log('✅ Default users already exist');
       }
     } catch (error) {
       console.error('❌ Failed to create default users:', error);
