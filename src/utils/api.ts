@@ -2,12 +2,14 @@ import { API_CONFIG } from '../config/database';
 import { User } from '../types/user';
 import { InvoiceData } from '../types/invoice';
 
-// API utility functions
+// API utility functions for backend MySQL connection
 class ApiService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = API_CONFIG.baseUrl;
+    this.baseUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://your-api-domain.com/api' 
+      : 'http://localhost:3001/api';
   }
 
   private async request<T>(
@@ -161,7 +163,10 @@ export const apiService = new ApiService();
 // Fallback to localStorage when API is not available
 export const isApiAvailable = async (): Promise<boolean> => {
   try {
-    const response = await fetch(`${API_CONFIG.baseUrl}/health`);
+    const apiUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://your-api-domain.com/api' 
+      : 'http://localhost:3001/api';
+    const response = await fetch(`${apiUrl}/health`);
     return response.ok;
   } catch {
     return false;

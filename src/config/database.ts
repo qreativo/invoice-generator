@@ -10,9 +10,7 @@ export const DATABASE_CONFIG = {
 
 // API endpoints configuration
 export const API_CONFIG = {
-  baseUrl: process.env.NODE_ENV === 'production' 
-    ? 'https://your-api-domain.com/api' 
-    : 'http://localhost:3001/api',
+  baseUrl: 'http://localhost:3001/api',
   endpoints: {
     // User endpoints
     users: '/users',
@@ -35,5 +33,7 @@ export const DB_TABLES = {
   USERS: 'users',
   INVOICES: 'invoices',
   INVOICE_ITEMS: 'invoice_items',
-  SESSIONS: 'user_sessions'
+  SESSIONS: 'user_sessions',
+  AUDIT_LOGS: 'audit_logs',
+  SYSTEM_SETTINGS: 'system_settings'
 };
