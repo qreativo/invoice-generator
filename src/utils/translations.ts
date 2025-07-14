@@ -455,7 +455,31 @@ export const translations = {
     sendViaWhatsApp: 'Kirim via WhatsApp',
     phoneNumber: 'Nomor Telepon',
     includeCountryCode: 'Sertakan kode negara (contoh: +62 untuk Indonesia)',
-    resetItHere: 'Reset di sini'
+    resetItHere: 'Reset di sini',
+    
+    // User Profile
+    userProfile: 'Profil Pengguna',
+    editProfile: 'Edit Profil',
+    personalInformation: 'Informasi Pribadi',
+    fullName: 'Nama Lengkap',
+    phoneNumber: 'Nomor Telepon',
+    securitySettings: 'Pengaturan Keamanan',
+    currentPassword: 'Kata Sandi Saat Ini',
+    newPassword: 'Kata Sandi Baru',
+    confirmNewPassword: 'Konfirmasi Kata Sandi Baru',
+    applicationPreferences: 'Preferensi Aplikasi',
+    defaultCurrency: 'Mata Uang Default',
+    notificationPreferences: 'Preferensi Notifikasi',
+    emailNotifications: 'Notifikasi Email',
+    whatsappNotifications: 'Notifikasi WhatsApp',
+    receiveNotificationsEmail: 'Terima notifikasi melalui email',
+    receiveNotificationsWhatsApp: 'Terima notifikasi melalui WhatsApp',
+    profileUpdated: 'Profil berhasil diperbarui!',
+    currentPasswordRequired: 'Kata sandi saat ini diperlukan untuk mengubah kata sandi',
+    currentPasswordIncorrect: 'Kata sandi saat ini salah',
+    leavePasswordEmpty: 'Biarkan kolom kata sandi kosong jika Anda tidak ingin mengubah kata sandi',
+    usernameCannotBeChanged: 'Nama pengguna tidak dapat diubah',
+    includeCountryCodeWhatsApp: 'Sertakan kode negara untuk notifikasi WhatsApp'
   }
 };
 

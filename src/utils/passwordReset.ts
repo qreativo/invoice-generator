@@ -313,9 +313,8 @@ export const requestPasswordReset = async (request: PasswordResetRequest): Promi
   if (request.method === 'email' && request.email) {
     user = users.find(u => u.email.toLowerCase() === request.email!.toLowerCase() && u.isActive);
   } else if (request.method === 'whatsapp' && request.phone) {
-    // Assuming phone is stored in a custom field or we need to add it to User type
-    // For now, we'll use email field as fallback
-    user = users.find(u => u.email.toLowerCase() === request.phone!.toLowerCase() && u.isActive);
+    // Find user by phone number
+    user = users.find(u => u.phone === request.phone && u.isActive);
   }
 
   if (!user) {
