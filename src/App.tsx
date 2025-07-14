@@ -9,6 +9,7 @@ import { InvoiceList } from './components/InvoiceList';
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
 import { AdminPanel } from './components/AdminPanel';
+import { PasswordResetForm } from './components/PasswordResetForm';
 import { saveInvoiceData, loadInvoiceData, clearInvoiceData, saveInvoice, updateInvoiceStatus } from './utils/storage';
 import { dataService } from './utils/dataService';
 import { translations } from './utils/translations';
@@ -59,6 +60,8 @@ function App() {
   const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
+  const [resetToken, setResetToken] = useState<string | undefined>(undefined);
   const [showNotification, setShowNotification] = useState<{
     message: string;
     type: 'success' | 'error';
@@ -69,6 +72,16 @@ function App() {
   useEffect(() => {
     // Initialize data service
     dataService.initialize();
+    
+    // Check for password reset token in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    if (token) {
+      setResetToken(token);
+      setShowPasswordReset(true);
+      // Clear the token from URL for security
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
     
     const savedData = loadInvoiceData();
     if (savedData) {
@@ -140,6 +153,10 @@ function App() {
     setCurrentView('list');
     showNotificationMessage('Logged out successfully', 'success');
   };
+  const handlePasswordReset = () => {
+    setShowPasswordReset(true);
+  };
+
 
   const handleCreateNew = () => {
     const newInvoice = { 
@@ -242,6 +259,20 @@ function App() {
     );
   }
 
+  // Show password reset form
+  if (showPasswordReset) {
+    return (
+      <PasswordResetForm
+        language={invoiceData.language}
+        onBack={() => {
+          setShowPasswordReset(false);
+          setResetToken(undefined);
+        }}
+        token={resetToken}
+      />
+    );
+  }
+
   // Show login form
   if (showLogin && !showRegister) {
     return (
@@ -252,6 +283,10 @@ function App() {
         onShowRegister={() => {
           setShowLogin(false);
           setShowRegister(true);
+        }}
+        onShowPasswordReset={() => {
+          setShowLogin(false);
+          setShowPasswordReset(true);
         }}
       />
     );
@@ -316,6 +351,7 @@ function App() {
         onLogin={() => setShowLogin(true)}
         onLogout={handleLogout}
         onAdminPanel={() => setCurrentView('admin')}
+        onPasswordReset={handlePasswordReset}
       />
 
       {/* Navigation */}

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Users, UserPlus, Edit, Trash2, Search, Shield, User, Eye, EyeOff, Save, X, Settings, Globe } from 'lucide-react';
+import { Users, UserPlus, Edit, Trash2, Search, Shield, User, Eye, EyeOff, Save, X, Settings, Globe, Key } from 'lucide-react';
 import { User as UserType } from '../types/user';
 import { dataService } from '../utils/dataService';
 import { translations } from '../utils/translations';
+import { PasswordResetSettings } from './PasswordResetSettings';
 
 interface AdminPanelProps {
   language: 'en' | 'id';
@@ -14,7 +15,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ language }) => {
   const [filteredUsers, setFilteredUsers] = useState<UserType[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingUser, setEditingUser] = useState<UserType | null>(null);
-  const [activeTab, setActiveTab] = useState<'users' | 'settings'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'settings' | 'password-reset'>('users');
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -204,6 +205,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ language }) => {
                 <Settings className="h-4 w-4 inline mr-2" />
                 {t.settings || 'Settings'}
               </button>
+              <button
+                onClick={() => setActiveTab('password-reset')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                  activeTab === 'password-reset'
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <Key className="h-4 w-4 inline mr-2" />
+                Password Reset
+              </button>
             </div>
           </div>
         </div>
@@ -354,6 +366,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ language }) => {
             </div>
           )}
         </>
+      ) : activeTab === 'password-reset' ? (
+        <PasswordResetSettings language={language} />
       ) : (
         /* Settings Tab */
         <div className="bg-white rounded-xl shadow-lg p-8">

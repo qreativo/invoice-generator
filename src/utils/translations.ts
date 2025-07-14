@@ -201,7 +201,32 @@ export const translations = {
     dontHaveAccount: "Don't have an account?",
     signUp: 'Sign up',
     alreadyHaveAccount: 'Already have an account?',
-    signIn: 'Sign in'
+    signIn: 'Sign in',
+    
+    // Password Reset
+    resetPassword: 'Reset Password',
+    forgotPassword: 'Forgot Password?',
+    resetPasswordDescription: 'Enter your email or phone number to receive a reset link',
+    sendResetLink: 'Send Reset Link',
+    resetLinkSent: 'Reset Link Sent!',
+    resetLinkSentDescription: 'Check your email or WhatsApp for the reset link',
+    newPassword: 'New Password',
+    confirmNewPassword: 'Confirm New Password',
+    passwordResetSuccessful: 'Password Reset Successful!',
+    passwordResetDescription: 'Your password has been successfully reset',
+    passwordRequirements: 'Password Requirements',
+    passwordMustContain: 'Password must contain:',
+    atLeast8Characters: 'At least 8 characters',
+    uppercaseLetter: 'One uppercase letter',
+    lowercaseLetter: 'One lowercase letter',
+    oneNumber: 'One number',
+    oneSpecialCharacter: 'One special character',
+    chooseResetMethod: 'Choose how you\'d like to receive your reset link',
+    sendViaEmail: 'Send via Email',
+    sendViaWhatsApp: 'Send via WhatsApp',
+    phoneNumber: 'Phone Number',
+    includeCountryCode: 'Include country code (e.g., +62 for Indonesia)',
+    resetItHere: 'Reset it here'
   },
   id: {
     // Header
@@ -405,7 +430,32 @@ export const translations = {
     dontHaveAccount: 'Belum punya akun?',
     signUp: 'Daftar',
     alreadyHaveAccount: 'Sudah punya akun?',
-    signIn: 'Masuk'
+    signIn: 'Masuk',
+    
+    // Password Reset
+    resetPassword: 'Reset Kata Sandi',
+    forgotPassword: 'Lupa Kata Sandi?',
+    resetPasswordDescription: 'Masukkan email atau nomor telepon untuk menerima link reset',
+    sendResetLink: 'Kirim Link Reset',
+    resetLinkSent: 'Link Reset Terkirim!',
+    resetLinkSentDescription: 'Periksa email atau WhatsApp Anda untuk link reset',
+    newPassword: 'Kata Sandi Baru',
+    confirmNewPassword: 'Konfirmasi Kata Sandi Baru',
+    passwordResetSuccessful: 'Reset Kata Sandi Berhasil!',
+    passwordResetDescription: 'Kata sandi Anda telah berhasil direset',
+    passwordRequirements: 'Persyaratan Kata Sandi',
+    passwordMustContain: 'Kata sandi harus mengandung:',
+    atLeast8Characters: 'Minimal 8 karakter',
+    uppercaseLetter: 'Satu huruf besar',
+    lowercaseLetter: 'Satu huruf kecil',
+    oneNumber: 'Satu angka',
+    oneSpecialCharacter: 'Satu karakter khusus',
+    chooseResetMethod: 'Pilih cara Anda ingin menerima link reset',
+    sendViaEmail: 'Kirim via Email',
+    sendViaWhatsApp: 'Kirim via WhatsApp',
+    phoneNumber: 'Nomor Telepon',
+    includeCountryCode: 'Sertakan kode negara (contoh: +62 untuk Indonesia)',
+    resetItHere: 'Reset di sini'
   }
 };
 

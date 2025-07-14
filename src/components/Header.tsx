@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Globe, Palette, User, LogOut, Settings, Shield, ChevronDown } from 'lucide-react';
+import { FileText, Globe, Palette, User, LogOut, Settings, Shield, ChevronDown, Key } from 'lucide-react';
 import { translations } from '../utils/translations';
 import { themes } from '../utils/themes';
 import { User as UserType } from '../types/user';
@@ -13,6 +13,7 @@ interface HeaderProps {
   onLogin: () => void;
   onLogout: () => void;
   onAdminPanel?: () => void;
+  onPasswordReset?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -23,7 +24,8 @@ export const Header: React.FC<HeaderProps> = ({
   user,
   onLogin,
   onLogout,
-  onAdminPanel
+  onAdminPanel,
+  onPasswordReset
 }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const t = translations[language];
@@ -143,6 +145,19 @@ export const Header: React.FC<HeaderProps> = ({
                         <div className="px-3 py-2 text-xs text-gray-500">
                           {t.lastLogin}: {user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'N/A'}
                         </div>
+                        
+                        {onPasswordReset && (
+                          <button
+                            onClick={() => {
+                              setShowUserMenu(false);
+                              onPasswordReset();
+                            }}
+                            className="w-full flex items-center space-x-2 px-3 py-2 text-left text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                          >
+                            <Key className="h-4 w-4" />
+                            <span>Reset Password</span>
+                          </button>
+                        )}
                         
                         <button
                           onClick={() => {

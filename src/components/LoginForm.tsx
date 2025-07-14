@@ -9,13 +9,15 @@ interface LoginFormProps {
   onLogin: (user: UserType) => void;
   onClose: () => void;
   onShowRegister: () => void;
+  onShowPasswordReset: () => void;
 }
 
 export const LoginForm: React.FC<LoginFormProps> = ({
   language,
   onLogin,
   onClose,
-  onShowRegister
+  onShowRegister,
+  onShowPasswordReset
 }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -162,6 +164,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                   className="text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
                 >
                   {t.signUp || 'Sign up'}
+                </button>
+              </p>
+              <p className="text-sm text-gray-600 mt-2">
+                Forgot your password?{' '}
+                <button
+                  onClick={onShowPasswordReset}
+                  className="text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
+                >
+                  Reset it here
                 </button>
               </p>
             </div>
